@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Days_Remaining__c</fullName>
+    <label>Days Remaining</label>
+    <type>Number</type>
+    <formula>Response_Deadline__c - TODAY()</formula>
+    <precision>18</precision>
+    <scale>0</scale>
+</CustomField>

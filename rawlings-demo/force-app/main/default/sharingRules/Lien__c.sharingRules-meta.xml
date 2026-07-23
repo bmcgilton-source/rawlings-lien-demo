@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>Health_Plan_A_Visibility</fullName>
+        <label>Health Plan A Visibility</label>
+        <accessLevel>Read</accessLevel>
+        <criteriaItems>
+            <field>Health_Plan_Text__c</field>
+            <operation>equals</operation>
+            <value>Health Plan A</value>
+        </criteriaItems>
+        <sharedTo>
+            <group>Health_Plan_A_Users</group>
+        </sharedTo>
+    </sharingCriteriaRules>
+</SharingRules>

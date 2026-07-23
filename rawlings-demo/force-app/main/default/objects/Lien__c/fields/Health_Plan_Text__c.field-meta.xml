@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Health_Plan_Text__c</fullName>
+    <label>Health Plan Name</label>
+    <length>255</length>
+    <type>Text</type>
+    <description>Plain-text denormalized copy of Health_Plan__c's Account Name, set by ClaimantImportController at import time. Exists because criteria-based sharing rules cannot reference Lookup fields, and (per platform restriction) not even a cross-object formula field derived from one.</description>
+</CustomField>

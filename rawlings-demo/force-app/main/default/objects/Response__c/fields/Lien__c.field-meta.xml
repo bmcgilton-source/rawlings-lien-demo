@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lien__c</fullName>
+    <label>Lien</label>
+    <type>MasterDetail</type>
+    <referenceTo>Lien__c</referenceTo>
+    <relationshipLabel>Responses</relationshipLabel>
+    <relationshipName>Responses</relationshipName>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

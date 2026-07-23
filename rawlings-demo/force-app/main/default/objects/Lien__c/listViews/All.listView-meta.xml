@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All</fullName>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <operation>notEqual</operation>
+        <field>Stage__c</field>
+        <value/>
+    </filters>
+    <label>All</label>
+    <columns>NAME</columns>
+    <columns>Claimant_Name__c</columns>
+    <columns>Health_Plan__c</columns>
+    <columns>Stage__c</columns>
+    <columns>Deadline_Status__c</columns>
+    <columns>Days_Remaining__c</columns>
+</ListView>

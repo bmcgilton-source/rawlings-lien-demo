@@ -1,0 +1,16 @@
+Claimant_Name,Claimant_ID,Health_Plan,Injury_Category,Coverage_Result,Recoverable_Amount
+James Holloway,CLM-00001,Health Plan A,Hip Implant,Confirmed,4250.00
+Maria Santos,CLM-00002,Health Plan B,Hip Implant,Confirmed,6100.00
+Robert Chen,CLM-00003,Health Plan A,Hip Implant,Confirmed,3875.00
+Patricia Williams,CLM-00004,Health Plan C,Hernia Mesh,Unable to Confirm,
+David Kim,CLM-00005,Health Plan B,Hip Implant,Confirmed,5200.00
+Linda Okafor,CLM-00006,Health Plan C,Hernia Mesh,Confirmed,4900.00
+Michael Torres,CLM-00007,Health Plan A,Hernia Mesh,Confirmed,3400.00
+Susan Nakamura,CLM-00008,Health Plan B,Hip Implant,Unable to Confirm,
+Thomas Adeyemi,CLM-00009,Health Plan C,Hip Implant,Confirmed,7800.00
+Jennifer Walsh,CLM-00010,Health Plan A,Hernia Mesh,Confirmed,4100.00
+Marcus Johnson,CLM-00011,Health Plan B,Hip Implant,Confirmed,5550.00
+Diana Reyes,CLM-00012,Health Plan C,Hip Implant,Confirmed,6200.00
+Kevin Park,CLM-00013,Health Plan A,Hernia Mesh,Unable to Confirm,
+Sarah Mitchell,CLM-00014,Health Plan B,Hernia Mesh,Confirmed,3750.00
+Carlos Mendez,CLM-00015,Health Plan C,Hip Implant,Confirmed,4400.00

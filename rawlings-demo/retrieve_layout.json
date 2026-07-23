@@ -1,0 +1,47 @@
+﻿{
+  "status": 0,
+  "result": {
+    "done": true,
+    "fileProperties": [
+      {
+        "createdById": "005dL00001pFWhdQAG",
+        "createdByName": "Brian McGilton",
+        "createdDate": "2026-07-21T18:57:17.000Z",
+        "fileName": "unpackaged/layouts/Settlement__c-Settlement Layout.layout",
+        "fullName": "Settlement__c-Settlement Layout",
+        "id": "00hdL00000fKnUpQAK",
+        "lastModifiedById": "005dL00001pFWhdQAG",
+        "lastModifiedByName": "Brian McGilton",
+        "lastModifiedDate": "2026-07-21T18:57:17.000Z",
+        "manageableState": "unmanaged",
+        "type": "Layout"
+      },
+      {
+        "createdById": "005dL00001pFWhdQAG",
+        "createdByName": "Brian McGilton",
+        "createdDate": "2026-07-21T20:18:53.864Z",
+        "fileName": "unpackaged/package.xml",
+        "fullName": "unpackaged/package.xml",
+        "id": "",
+        "lastModifiedById": "005dL00001pFWhdQAG",
+        "lastModifiedByName": "Brian McGilton",
+        "lastModifiedDate": "2026-07-21T20:18:53.864Z",
+        "manageableState": "unmanaged",
+        "type": "Package"
+      }
+    ],
+    "id": "09SdL00000DXbR7UAL",
+    "status": "Succeeded",
+    "success": true,
+    "messages": [],
+    "files": [
+      {
+        "fullName": "Settlement__c-Settlement Layout",
+        "type": "Layout",
+        "state": "Created",
+        "filePath": "C:\\Users\\b_mcg\\Documents\\Projects\\Rawlings\\rawlings-demo\\force-app\\main\\default\\layouts\\Settlement__c-Settlement Layout.layout-meta.xml"
+      }
+    ]
+  },
+  "warnings": []
+}

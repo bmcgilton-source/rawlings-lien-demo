@@ -1,0 +1,30 @@
+<template>
+    <template if:true={isDefault}>
+        <div class="slds-p-around_medium">
+            <h2 class="slds-text-heading_small slds-m-bottom_small">Generate Response File</h2>
+            <p class="slds-m-bottom_medium">
+                Builds the response CSV for all Coverage Confirmed liens on this settlement and
+                writes it to the outbound folder. The file will appear within a few seconds.
+            </p>
+            <div class="slds-align_absolute-center">
+                <lightning-button
+                    variant="neutral"
+                    label="Cancel"
+                    onclick={handleCancel}
+                    class="slds-m-right_small"
+                ></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    label="Generate"
+                    onclick={handleGenerate}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={isLoading}>
+        <div class="slds-p-around_medium slds-align_absolute-center" style="min-height: 6rem;">
+            <lightning-spinner alternative-text="Generating..." size="medium"></lightning-spinner>
+        </div>
+    </template>
+</template>

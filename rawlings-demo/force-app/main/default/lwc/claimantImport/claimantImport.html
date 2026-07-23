@@ -1,0 +1,42 @@
+<template>
+    <template if:true={isDefault}>
+        <div class="slds-p-around_medium">
+            <p class="slds-m-bottom_medium">
+                This simulates the SFTP integration layer picking up an inbound claimant file
+                and loading it into Salesforce as Lien records. Once imported, the platform
+                automatically evaluates each claimant and either advances it toward a response
+                or routes it to the escalation queue for human review.
+            </p>
+            <div class="slds-align_absolute-center">
+                <lightning-button
+                    variant="neutral"
+                    label="Cancel"
+                    onclick={handleCancel}
+                    class="slds-m-right_small"
+                ></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    label="Run Import"
+                    onclick={handleRunImport}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={isLoading}>
+        <div class="slds-p-around_medium slds-align_absolute-center" style="min-height: 6rem;">
+            <lightning-spinner alternative-text="Processing claimant file..." size="medium"></lightning-spinner>
+        </div>
+    </template>
+
+    <template if:true={isError}>
+        <div class="slds-p-around_medium">
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+                <span>{errorMessage}</span>
+            </div>
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <lightning-button variant="neutral" label="Cancel" onclick={handleCancel}></lightning-button>
+            </div>
+        </div>
+    </template>
+</template>

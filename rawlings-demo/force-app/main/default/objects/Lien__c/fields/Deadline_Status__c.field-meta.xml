@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Deadline_Status__c</fullName>
+    <label>Deadline Status</label>
+    <type>Text</type>
+    <formula>IF(Days_Remaining__c &gt; 20, &quot;Green&quot;,
+  IF(Days_Remaining__c &gt; 10, &quot;Yellow&quot;, &quot;Red&quot;))</formula>
+</CustomField>

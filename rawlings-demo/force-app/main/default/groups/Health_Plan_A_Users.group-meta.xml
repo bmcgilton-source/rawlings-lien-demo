@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Group xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Health_Plan_A_Users</fullName>
+    <name>Health Plan A Users</name>
+    <doesIncludeBosses>false</doesIncludeBosses>
+</Group>

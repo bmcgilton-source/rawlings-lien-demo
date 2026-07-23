@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Escalation_Queue</fullName>
+    <label>Escalation Queue</label>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Stage__c</field>
+        <operation>equals</operation>
+        <value>Escalated</value>
+    </filters>
+    <columns>NAME</columns>
+    <columns>Claimant_Name__c</columns>
+    <columns>Health_Plan__c</columns>
+    <columns>Escalation_Reason__c</columns>
+    <columns>Intake_Date__c</columns>
+    <columns>Response_Deadline__c</columns>
+    <columns>Days_Remaining__c</columns>
+</ListView>

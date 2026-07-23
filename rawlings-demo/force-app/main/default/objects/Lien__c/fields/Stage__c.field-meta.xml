@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Stage__c</fullName>
+    <label>Stage</label>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Intake</fullName>
+                <default>true</default>
+                <label>Intake</label>
+            </value>
+            <value>
+                <fullName>Coverage Confirmed</fullName>
+                <default>false</default>
+                <label>Coverage Confirmed</label>
+            </value>
+            <value>
+                <fullName>Escalated</fullName>
+                <default>false</default>
+                <label>Escalated</label>
+            </value>
+            <value>
+                <fullName>Response Ready</fullName>
+                <default>false</default>
+                <label>Response Ready</label>
+            </value>
+            <value>
+                <fullName>Response Submitted</fullName>
+                <default>false</default>
+                <label>Response Submitted</label>
+            </value>
+            <value>
+                <fullName>Negotiation</fullName>
+                <default>false</default>
+                <label>Negotiation</label>
+            </value>
+            <value>
+                <fullName>Agreed</fullName>
+                <default>false</default>
+                <label>Agreed</label>
+            </value>
+            <value>
+                <fullName>Pre-Validation</fullName>
+                <default>false</default>
+                <label>Pre-Validation</label>
+            </value>
+            <value>
+                <fullName>Recovery Calculated</fullName>
+                <default>false</default>
+                <label>Recovery Calculated</label>
+            </value>
+            <value>
+                <fullName>Collected</fullName>
+                <default>false</default>
+                <label>Collected</label>
+            </value>
+            <value>
+                <fullName>Closed</fullName>
+                <default>false</default>
+                <label>Closed</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
