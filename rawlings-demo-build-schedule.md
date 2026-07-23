@@ -6,6 +6,14 @@
 
 ---
 
+## Status: Monday–Thursday schedule below is Complete
+
+Everything from Task M.1 through Th.5 is built and demoed — the full intake-through-response slice with SFTP simulation, escalation routing, deadline monitoring, audit history, and the full-lifecycle Path chevron. See `rawlings-demo/docs/architecture.md` §3 (Built Components) for the current reference — that document is now the source of truth for what's built, and this schedule is kept as a record of how it was built.
+
+**Remaining work** — proving the platform at volume for a partner + technical-consultant audience — is scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo-not-started). See `rawlings-demo/docs/architecture.md` §4 for the full design.
+
+---
+
 ## How to Read This Schedule
 
 Each task shows the tool you'll use, a time estimate, and what done looks like. Tasks marked **⚠️ Risk** are the ones most likely to cause problems. Tasks marked **🤖 Claude Code** mean you open Claude Code and let it work rather than writing code yourself.
@@ -665,3 +673,80 @@ python3 demo/demo_server.py
 # Check scratch org details/expiry
 sf org display --target-org rawlings-demo
 ```
+
+---
+
+## Bulk Actions & Volume Demo — Not Started
+
+**Goal:** Prove the platform handles a real book of business, not just a 15-row CSV — live, for an audience of partners unfamiliar with CRM plus one technical consultant. Full design: `rawlings-demo/docs/architecture.md` §4.
+
+Scope for this pass: Settlement Lien Summary rollup + Bulk Advance Liens batch action. Permission-set gating is intentionally **not** part of this pass — narrated verbally, not built. Seed volume is ~1,000 synthetic records, not the full 100,000 — the batch mechanism underneath is production-shaped regardless of the demo volume.
+
+---
+
+**Task V.1 — Spike: verify GROUP BY on a formula field**
+*Tool: Developer Console / anonymous Apex | Time: 10 min | Non-blocking*
+
+Run an aggregate query grouping by `Deadline_Status__c` against a handful of test Liens. Informational only — the Summary controller design (Task V.3) doesn't depend on the answer either way, since it uses `Days_Remaining__c` WHERE-filters instead.
+
+✅ Done when: answer recorded, whichever way it goes.
+
+---
+
+**Task V.2 — Build `LienBulkStageTransitionBatch` + `BulkStageTransitionController` + test**
+*Tool: 🤖 Claude Code / IDE | Time: 2–3 hours*
+
+`Database.Batchable` with `QueryLocator`, batch size 2000. Controller methods: `getStageOptions`, `previewCount`, `enqueueBulkTransition`, `getJobStatus`. Server-side from/to validation; `Escalated` omitted from `getStageOptions()` entirely. No permission-set check — see scope note above.
+
+✅ Done when: test class passes, and a manual test against 10–20 hand-inserted Liens correctly previews, enqueues, and moves records with a Field History entry per record.
+
+---
+
+**Task V.3 — Build `SettlementLienSummaryController` + test**
+*Tool: 🤖 Claude Code / IDE | Time: 1 hour*
+
+`getSummary(Id settlementId)` — stage counts (picklist order) + Green/Yellow/Red deadline counts via `Days_Remaining__c` WHERE-filtered `COUNT()` queries (not `GROUP BY` on the formula field).
+
+✅ Done when: test class passes, asserting counts against a known small dataset.
+
+---
+
+**Task V.4 — Build `settlementLienSummary` LWC**
+*Tool: 🤖 Claude Code / IDE | Time: 1–1.5 hours*
+
+Stat tiles: Total, Escalated, per-stage row, then Green/Yellow/Red row (Red emphasized). Manual Refresh button. Empty state when zero liens.
+
+✅ Done when: deployed and verified against the existing 15–25 row demo data — tile counts match a manual count.
+
+---
+
+**Task V.5 — Build `bulkStageTransition` LWC + Quick Action + page placement**
+*Tool: 🤖 Claude Code / IDE + Salesforce Setup UI | Time: 1.5–2 hours*
+
+Select → Preview → Submitting → Queued → Progress (polls `getJobStatus` every 5s). New `Bulk_Advance_Liens` Quick Action on Settlement; add both the action and `settlementLienSummary` to the Settlement Lightning Record Page (summary above the Lien related list).
+
+✅ Done when: end-to-end verified against small data — preview → submit → toast → poll → completion → Field History entry on a moved record.
+
+---
+
+**Task V.6 — Seed ~1,000 synthetic Lien records**
+*Tool: Terminal (`sf apex run`) | Time: 30–45 min*
+
+Write and run `scripts/apex/seedVolumeLiens.apex` — single synchronous anonymous Apex script (no async chunking needed at this volume). ~850 records land at Coverage Confirmed via the automated Flow path; ~150 redistributed across the other 7 downstream stages via a post-insert bulk update. `Claimant_ID__c` prefixed `SYN-` to keep synthetic data distinguishable from the hand-built demo records.
+
+⚠️ **Risk:** the Flow fires on every insert with no bypass — every seeded row must insert as `Coverage_Result__c='Confirmed'` with a positive amount, or it will be forced to `Escalated` and flood the queue. See architecture.md §4.6 for the full reasoning.
+
+✅ Done when: `SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'` matches the target distribution.
+
+---
+
+**Task V.7 — Full live dry run**
+*Tool: Salesforce + Desktop | Time: 30–45 min*
+
+Summary tiles reflect ~1,000 total liens with the expected spread. Click Bulk Advance Liens, Coverage Confirmed → Response Ready, confirm preview reads ~850, submit, wait for completion, Refresh, confirm the shift. Spot-check Field History on a few moved records. Rehearse the narration from architecture.md §6 (the new "book of business at volume" beat, inserted after the escalation/history walkthrough).
+
+✅ Done when: dry run completes clean at least twice before the real demo.
+
+---
+
+**Bulk Actions check:** Summary + Bulk Advance built and verified at volume. Access control narrated, not enforced. Ready to fold into the existing demo script's new beat.
