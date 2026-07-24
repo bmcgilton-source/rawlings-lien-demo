@@ -28,6 +28,7 @@ No changes to the object model between what's built and what's planned — the v
 | Settlement | `Settlement__c` | Parent record; master configuration a lien inherits (administrator, response window, program terms) |
 | Lien | `Lien__c` | One claimant's recovery opportunity within one settlement; the thing that moves through stages |
 | Response | `Response__c` | Child of Lien; the platform's asserted position, created automatically once coverage is confirmed |
+| Settlement Health Plan | `Settlement_Health_Plan__c` | Junction; declares which health plan Accounts participate in a Settlement (planned, §4.7) |
 
 ### Settlement Fields
 
@@ -201,6 +202,8 @@ The audience is partners unfamiliar with CRM concepts plus one technical consult
 ### 4.6 Volume data seeding — `scripts/apex/seedVolumeLiens.apex` (does not exist yet)
 No precedent for this in the codebase — `ClaimantImportController` reads a 15–25 row Static Resource synchronously and isn't the right tool for volume seeding.
 
+**Targets a second Settlement record, not the live-import one.** Per the demo script's two-settlement design (see `demo-script-open-questions.md` and `docs/demo-script.md`), this seed runs against a dedicated "volume" Settlement — created solely to hold the seeded book of business — never the settlement the live Import Claimants action runs against during the demo. Keeping them separate is what lets the live settlement's Lien related list and Escalation Queue stay a clean, countable 15-ish rows throughout the demo, with no filtering required to hide the seeded volume. The pre-built deadline threshold record (§3.13, `[Pre-existing] Helen Vasquez`) also belongs on this volume settlement, not the live one — see §5 remaining steps.
+
 **Constraint discovered during design:** `Lien Automation on Create` fires on *every* insert with no bypass. Any seeded row that doesn't satisfy `Coverage_Result__c='Confirmed' AND Recoverable_Amount__c>0` gets forced to `Escalated` — flooding the Escalation Queue and wrecking the existing "3 out of 15" escalation story. So every seeded row must insert as `Confirmed` with a positive amount (landing at `Coverage Confirmed` via the automated path, which also creates a Draft `Response__c` — a consistent side effect, not a problem); rows destined for a different stage get moved there by a **separate bulk `update` after the insert completes** (an update doesn't re-trigger a record-*created* flow).
 
 **Simplified design (revised down for this audience — proving the mechanism matters more than a dramatic-looking number):**
@@ -211,6 +214,39 @@ No precedent for this in the codebase — `ClaimantImportController` reads a 15�
 - Synthetic rows use `Claimant_ID__c` prefix `SYN-` (vs. the hand-built demo data's `CLM-` prefix) so they're identifiable and cleanable independently of the 15–25 row demo data and the Helen Vasquez record.
 - `Health_Plan__c` resolved by round-robin against the 3 existing Health Plan Accounts (created by a prior Import Claimants run).
 - `Response_Deadline__c` randomized (~-15 to +75 days from today) and `Intake_Date__c` randomized per target stage, so the Green/Yellow/Red tiles look realistic rather than degenerate.
+
+### 4.7 Settlement Health Plan Junction (planned, not started)
+Added in response to a gap surfaced while reviewing the demo script: the RFP describes Settlement Configuration as the "system of record for a settlement, its participating health plans, its lien resolution program terms" — but nothing in the current or planned data model lets a Settlement show its participating health plans as a set. `Health_Plan__c` today is a Lookup that only exists on `Lien__c`, populated per-claimant at import time. A Settlement can't have more than one health plan on it without a junction, since a Lookup only points one way.
+
+**Simplest implementation, decorative only (no enforcement):**
+- New object `Settlement_Health_Plan__c` with two required Lookup fields: `Settlement__c` (Lookup to `Settlement__c`) and `Health_Plan__c` (Lookup to `Account`).
+- No Apex, no LWC, no validation rule. Add it as a related list on the Settlement Lightning Record Page — a plain Lookup relationship supports a related list without needing Master-Detail.
+- For the demo settlement, hand-create 3 junction records linking it to the same 3 Health Plan Accounts already used by Import Claimants / the volume seed, so Beat 1 of the demo script has a real related list to show.
+- **Explicitly not built:** no constraint tying a Lien's `Health_Plan__c` to its Settlement's configured junction records. A Lien can still reference any Health Plan Account regardless of what's junction-linked to its Settlement. Enforcing that (a validation rule cross-referencing the junction) is a small follow-on if this ever needs to be a real business rule rather than a demo visual — see open question below.
+- No test class needed — declarative-only, nothing to unit test.
+
+### 4.8 "Liens Ready to Respond" report (planned, not started)
+Added when the live demo's response-file beat was reworked: the built `ResponseFileWriter.cls` → Python server → ngrok pathway (§3.6–3.9) is the only part of the whole demo with an external dependency — a local process, a tunnel, a per-session URL, and the venue's network all have to cooperate. That's a real risk concentrated in one beat, for no benefit the audience can actually see (the callout is async; all they see is a toast and a file appearing a few seconds later either way).
+
+**Replacement for the live demo path:** a standard Salesforce Report on `Lien__c`, filtered to a given Settlement and `Stage__c = 'Coverage Confirmed'`, columns covering Claimant Name, Claimant ID, Health Plan, Recoverable Amount, Response Deadline. Uses the platform's native Export function — no Apex, no LWC, no external server, nothing that can fail on a venue's network. The exported file gets saved into the demo's `outbound/` folder so the visual bookend from Beat 0 (folder starts empty, ends with a file) is unchanged.
+
+**Worth being precise about what `ResponseFileWriter.cls` actually is, so the demo doesn't overclaim it:** it's an Apex callout that POSTs a file to a local HTTP server (§3.6) — a stand-in for the external channel, not a literal SFTP client. Per §8 (Future State), real delivery to an administrator's SFTP server in production runs through a middleware integration layer (MuleSoft or AWS Transfer Family + Lambda) — Salesforce doesn't speak SFTP directly, and building that layer is explicitly out of scope for this prototype. So the reason this path isn't run live isn't just "it's risky" — it was never a preview of the real production mechanism to begin with, only a simulation of the exchange concept over HTTP.
+
+- **`ResponseFileWriter.cls`, `generateResponseFile` LWC, the Python server, and the ngrok/Named Credential setup are not being removed or deprecated** — they remain built and demonstrable on request (e.g., if the consultant wants to see the simulated callout), correctly described as a stand-in for where a future middleware layer would sit. They're simply no longer the path the live demo script runs through. See `docs/demo-script-open-questions.md` for the full reasoning.
+- No custom report type needed — Salesforce auto-generates a default report type for custom objects.
+- No test class — declarative-only.
+
+### 4.9 "Liens Near Deadline" dynamic related list (planned, not started)
+Added in response to a gap surfaced while reviewing the demo script: the deadline story (§3.13, `Deadline_Status__c` Red/Yellow/Green) only ever computes a color on a formula field — nothing surfaces which liens are at risk to a person. Someone has to already be looking at the right record or list to notice. That's a real difference from the escalation path, which actively pushes a Task and a Custom Notification (§3.3) the moment it happens. The Summary tiles (§4.3) help at the aggregate level — a Red count — but don't show *which* liens make up that count without leaving the page.
+
+**Simplest implementation, in-context, no code:** a native Dynamic Related List (Single) component on the Settlement Lightning Record Page, scoped to the Lien child relationship:
+- Filter: `Deadline_Status__c` in (`Yellow`, `Red`) AND `Stage__c` not in (`Closed`, `Collected`) — same exclusion logic as the Summary controller's deadline breakdown (§4.1), kept consistent.
+- Sort: `Days_Remaining__c` ascending, so the most urgent liens are on top.
+- Columns: Claimant Name, Stage, Days Remaining, Deadline Status.
+- Placed on the Settlement page alongside (not replacing) the Summary tiles — tiles give the count, this list gives the actual records, both visible without navigating away.
+- No Apex, no LWC, no test class — pure Lightning App Builder configuration, same build tier as §4.7.
+- **Deliberately not built:** clicking a Summary tile to filter this list would require custom LWC event-wiring between the two components. Left out — both components independently reflect current state, which solves the actual gap (a partner can see who's at risk without hunting) without the added build complexity.
+- On the seeded volume settlement, this list will show more than just the one hand-placed deadline record, since `Response_Deadline__c` is randomized across a wide range at seed time (§4.6) — a side benefit, not something built specifically for this.
 
 ---
 
@@ -235,45 +271,20 @@ No precedent for this in the codebase — `ClaimantImportController` reads a 15�
 3. Build `SettlementLienSummaryController` + test.
 4. Build `settlementLienSummary` LWC, verify tiles against existing 15–25 row demo data (countable by eye).
 5. Build `bulkStageTransition` LWC + Quick Action + flexipage placement, verify end-to-end against small data (preview → submit → toast → poll → Field History entry).
-6. Run `seedVolumeLiens.apex`, verify record counts and stage distribution (`SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'`) match target.
-7. Full live dry run: Summary tiles reflect ~1,000 total liens with the expected spread → Bulk Advance Coverage Confirmed → Response Ready → preview reads ~850 → submit → job completes → Refresh confirms the shift → spot-check Field History on a few moved records.
-8. Repeat the dry run at least once more before the actual demo.
+6. Create a second Settlement record (the "volume" settlement — distinct name/administrator from the live-import settlement) to seed volume against, per the two-settlement demo design in §4.6.
+7. Run `seedVolumeLiens.apex` against the volume settlement's Id, verify record counts and stage distribution (`SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'`) match target.
+8. Re-create the pre-built deadline threshold record (`[Pre-existing] Helen Vasquez`) on the volume settlement instead of the live one; remove it from the live settlement if it was created there originally, so the live settlement's Lien related list stays a clean count of only what the live import creates.
+9. Full live dry run: on the volume settlement, Summary tiles reflect ~1,000 total liens with the expected spread → Bulk Advance Coverage Confirmed → Response Ready → preview reads ~850 → submit → job completes → Refresh confirms the shift → spot-check Field History on a few moved records.
+10. Repeat the dry run at least once more before the actual demo.
+11. Build `Settlement_Health_Plan__c` junction object + two Lookup fields; add as a related list on the Settlement Lightning Record Page; hand-create 3 junction records for the live settlement (§4.7).
+12. Build the "Liens Ready to Respond" Report on `Lien__c`, filtered by Settlement + Stage = Coverage Confirmed; verify Export produces a usable file, saved to `outbound/` (§4.8).
+13. Add a Dynamic Related List (Single) component to the Settlement Lightning Record Page, filtered/sorted per §4.9; verify against both settlements that it shows only Yellow/Red, non-Closed/Collected liens, soonest deadline first.
 
 ---
 
 ## 6. Demo Script
 
-### Setup (before the room fills)
-- Python server running (`python3 demo/demo_server.py`), ngrok running, Named Credential updated with the current ngrok URL.
-- Desktop folders visible: `inbound/` (containing `SampleClaimants.csv`), `outbound/` (empty).
-- Salesforce Settlement record open, Lien related list empty; Escalation Queue list view open in a second tab.
-- Pre-built deadline threshold record visible (already red).
-- One silent end-to-end test run completed, then data reset.
-- *(Once §4 is built)* Settlement already carries the ~1,000-record seeded volume, so the Summary tiles read as a real book of business from the moment the room walks in.
-
-### Narrative and sequence
-
-**Open with the desktop (30s)** — show the two folders before opening Salesforce. "This is what the SFTP exchange looks like in the demo. The administrator has put their claimant file in the inbound folder. Outbound is empty. That changes by the end of this."
-
-**Frame the settlement (1m)** — open the Settlement record, walk through program terms (administrator, participating health plans, 90-day response window). "Every lien created against this settlement inherits these terms."
-
-**Run the import (1m)** — click Import Claimants. "In production, the integration layer picks up that inbound file automatically. We're triggering that handoff manually today." Let the toast land without narrating it. Explain that coverage/damages results are normally populated by live service calls; today they're pre-populated in the import file to simulate that.
-
-**Show what the system did (2m)** — scroll to the Lien related list. "The system has already processed these. It didn't wait for us." Point to Coverage Confirmed liens (auto-advanced, response position created) and switch to the Escalation Queue tab for the ones that couldn't be resolved automatically ("the system didn't drop them — it routed them, created a task, flagged them for a human").
-
-**Show the automated path in detail (2m)** — open a Coverage Confirmed lien, show stage/intake date/deadline, open the Response child (claimed amount, Draft status). Scroll to History — "every change is recorded. Who, what, when. The system moved it, not a person."
-
-**Show the escalation path in detail (1m)** — open an Escalated lien, show the escalation reason and the assigned Task, due in five days.
-
-**Show the book of business at volume — new beat, once §4 is built (1–2m)** — scroll up or navigate to the Summary tiles at the top of the Settlement. "What you just watched was 15 claimants. This settlement actually carries about a thousand liens across every stage of the lifecycle — here's the current state of all of them at a glance." Click Bulk Advance Liens, pick a From Stage with a real count, show the preview ("this will move ~850 liens"), confirm, let it complete, click Refresh, point at the tiles shifting. "That's not a mockup — it's the same batch mechanism Salesforce uses for jobs into the millions of records. We're showing a smaller pool live to keep this tight; the code path at 100,000 liens is identical, it just runs a few more chunks in the background." (Keep the batch/chunking detail brief and only go deeper if the consultant follows up.)
-
-**Show the deadline story (1m)** — point to the pre-built red record. "This lien has been open for 82 days. The system flagged it automatically when it crossed the 10-day threshold. No one had to check a spreadsheet."
-
-**Show the full lifecycle (30s)** — scroll to the chevron on a lien. "This is the full path a lien takes. What you've seen automatically is intake, coverage, and response. Negotiation, recovery calculation, collection aren't wired up in this prototype, but the platform already tracks where every lien sits against them." Click a later step to show it advance. "Same object model — the remaining stages are additional workflow builds on what's already here, not a different system."
-
-**Generate the response file (1m)** — click Generate Response File. "The platform now sends its position back to the administrator — in production, a file to their SFTP server." Wait the 2–5 seconds ("give it a moment"), open the file on the desktop. "File in. Liens processed. File out."
-
-**Frame what you haven't built (30s)** — "The SFTP polling that detects the inbound file automatically, the Liability and Damages services, the payment reconciliation — those are later phases. Access control on actions like Bulk Advance — restricting it to an ops-manager role — is a permission-set change, not a redesign; we haven't wired that gate into this build yet, but the platform supports it natively. What we've shown today is that the platform manages the workflow correctly from the moment data arrives, closes the loop with a response, and does both at the volume this book of business actually requires."
+**Superseded by `docs/demo-script.md`.** The version originally drafted here assumed a single settlement carrying both the live import and the seeded volume; that created a real problem — the live settlement's Lien related list and Escalation Queue would show the ~1,000 pre-seeded rows mixed in with the ~15 live-imported ones, undercutting the "this was just fifteen claimants" framing needed before the volume reveal. `docs/demo-script.md` fixes this with a two-settlement, two-act structure (Act 1: full intake-through-response loop on a clean live settlement; Act 2: the same platform at scale on a second, pre-loaded settlement) and is now the authoritative script, beat by beat, with talk track. See `demo-script-open-questions.md` for the reasoning behind the split.
 
 ---
 
@@ -299,6 +310,24 @@ Unchanged from the built prototype — see the original acceptance criteria; all
 - [ ] The seeded ~850-record Coverage Confirmed bucket advances to Response Ready without hitting governor limits
 - [ ] Every record moved by the batch shows the stage change in its History related list, attributed to the running user
 - [ ] Submitting an invalid From/To pair via a direct Apex call (bypassing the LWC) throws `AuraHandledException`
+
+### Settlement Health Plan Junction (planned)
+- [ ] `Settlement_Health_Plan__c` related list renders on the Settlement record page
+- [ ] The demo settlement shows 3 junction records, matching the 3 Health Plan Accounts used elsewhere in the demo
+- [ ] No enforcement exists yet tying a Lien's `Health_Plan__c` to its Settlement's junction records — a Lien can still reference any Health Plan Account (documented gap, not a defect)
+
+### "Liens Ready to Respond" Report (planned)
+- [ ] Report filters correctly to a given Settlement and `Stage__c = 'Coverage Confirmed'`
+- [ ] Export produces a file readable outside Salesforce (Excel/CSV) with claimant, health plan, recoverable amount, and response deadline visible
+- [ ] Demonstrated without ngrok, the Python server, or the Named Credential running — no external dependency in the live path
+- [ ] `ResponseFileWriter.cls`, `generateResponseFile` LWC, and the Python server remain deployed and functional, unchanged — this report is an additional path, not a replacement of the built integration
+
+### "Liens Near Deadline" dynamic related list (planned)
+- [ ] Renders on the Settlement Lightning Record Page alongside the Summary tiles
+- [ ] Shows only liens with `Deadline_Status__c` in (Yellow, Red) and `Stage__c` not in (Closed, Collected)
+- [ ] Sorted by `Days_Remaining__c` ascending (most urgent first)
+- [ ] On the volume settlement, shows more than just the one pre-built deadline record, reflecting the randomized seed data
+- [ ] No Apex, no LWC — pure Lightning App Builder configuration
 
 ---
 
@@ -328,3 +357,4 @@ The demo's Apex controllers should not be carried forward to production without 
 | Who holds the eventual permission set / ops-manager role in the client's real org model? | Open — confirm with client once access control is actually built. |
 | Does the client want a completion notification when a bulk job finishes? | Open — likely a fast follow, out of scope for this build pass. |
 | Should `Response Ready → Response Submitted` bulk-advancing also trigger the outbound response-file generation? | Open — flagged as a likely Phase 2 integration point between the import and bulk-transition mechanisms; currently the bulk tool only changes `Stage__c`. |
+| Should a Lien's Health Plan be constrained to its Settlement's configured `Settlement_Health_Plan__c` junction records? | Open — §4.7 ships decorative-only (no enforcement) for the demo. Revisit if this needs to be a real business rule rather than a demo visual. |

@@ -77,7 +77,7 @@ Save.
 3. How to Find Records to Update: **Use the record that triggered the flow**
 4. Set Field Values:
    - `Stage__c` = `Escalated`
-   - `Escalation_Reason__c` = `Coverage could not be confirmed automatically`
+   - `Escalation_Reason__c` = `Health plan enrollment records on file don't confirm this claimant was covered on the treatment date — eligibility needs to be verified with the health plan before liability can be confirmed.`
 
 ### 4b. Create the escalation Task
 1. Click **+** after the Update Records element (same branch) → **Create Records**

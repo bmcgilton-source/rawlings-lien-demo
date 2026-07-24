@@ -10,7 +10,13 @@
 
 Everything from Task M.1 through Th.5 is built and demoed — the full intake-through-response slice with SFTP simulation, escalation routing, deadline monitoring, audit history, and the full-lifecycle Path chevron. See `rawlings-demo/docs/architecture.md` §3 (Built Components) for the current reference — that document is now the source of truth for what's built, and this schedule is kept as a record of how it was built.
 
-**Remaining work** — proving the platform at volume for a partner + technical-consultant audience — is scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo-not-started). See `rawlings-demo/docs/architecture.md` §4 for the full design.
+**Remaining work:**
+- Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo-not-started). See `rawlings-demo/docs/architecture.md` §4 for the full design.
+- Letting a Settlement show its participating health plans — scheduled below in [Settlement Health Plan Junction](#settlement-health-plan-junction--not-started). See `rawlings-demo/docs/architecture.md` §4.7 for the full design.
+- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--not-started). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
+- Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--not-started). See `rawlings-demo/docs/architecture.md` §4.8 for why.
+- Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--not-started). See `rawlings-demo/docs/architecture.md` §4.9 for why.
+- Making the escalation reason text specific instead of generic — a small edit to the already-built Flow, scheduled below in [Escalation Reason Text Update](#escalation-reason-text-update--not-started).
 
 ---
 
@@ -731,22 +737,182 @@ Select → Preview → Submitting → Queued → Progress (polls `getJobStatus` 
 
 **Task V.6 — Seed ~1,000 synthetic Lien records**
 *Tool: Terminal (`sf apex run`) | Time: 30–45 min*
+⚠️ **Depends on Task R.1** (below) — the volume settlement must exist first. Do not run this against the live-import settlement.
 
-Write and run `scripts/apex/seedVolumeLiens.apex` — single synchronous anonymous Apex script (no async chunking needed at this volume). ~850 records land at Coverage Confirmed via the automated Flow path; ~150 redistributed across the other 7 downstream stages via a post-insert bulk update. `Claimant_ID__c` prefixed `SYN-` to keep synthetic data distinguishable from the hand-built demo records.
+Write and run `scripts/apex/seedVolumeLiens.apex` targeting the volume settlement's Id — single synchronous anonymous Apex script (no async chunking needed at this volume). ~850 records land at Coverage Confirmed via the automated Flow path; ~150 redistributed across the other 7 downstream stages via a post-insert bulk update. `Claimant_ID__c` prefixed `SYN-` to keep synthetic data distinguishable from the hand-built demo records.
 
 ⚠️ **Risk:** the Flow fires on every insert with no bypass — every seeded row must insert as `Coverage_Result__c='Confirmed'` with a positive amount, or it will be forced to `Escalated` and flood the queue. See architecture.md §4.6 for the full reasoning.
 
-✅ Done when: `SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'` matches the target distribution.
+✅ Done when: `SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'` matches the target distribution, where `:id` is the volume settlement.
 
 ---
 
 **Task V.7 — Full live dry run**
 *Tool: Salesforce + Desktop | Time: 30–45 min*
 
-Summary tiles reflect ~1,000 total liens with the expected spread. Click Bulk Advance Liens, Coverage Confirmed → Response Ready, confirm preview reads ~850, submit, wait for completion, Refresh, confirm the shift. Spot-check Field History on a few moved records. Rehearse the narration from architecture.md §6 (the new "book of business at volume" beat, inserted after the escalation/history walkthrough).
+On the volume settlement: Summary tiles reflect ~1,000 total liens with the expected spread. Click Bulk Advance Liens, Coverage Confirmed → Response Ready, confirm preview reads ~850, submit, wait for completion, Refresh, confirm the shift. Spot-check Field History on a few moved records. Rehearse the narration from `docs/demo-script.md` Act 2 (Beats 7–9).
 
 ✅ Done when: dry run completes clean at least twice before the real demo.
 
 ---
 
 **Bulk Actions check:** Summary + Bulk Advance built and verified at volume. Access control narrated, not enforced. Ready to fold into the existing demo script's new beat.
+
+---
+
+## Settlement Health Plan Junction — Not Started
+
+**Goal:** Let the Settlement record show its participating health plans directly, so the Settlement Configuration beat of the demo can actually demonstrate that — right now health plan only exists per-Lien. Decorative only: no Apex, no validation rule, no test class. Full design: `rawlings-demo/docs/architecture.md` §4.7.
+
+---
+
+**Task H.1 — Build `Settlement_Health_Plan__c` junction and related list**
+*Tool: Salesforce Setup UI | Time: 30–45 min*
+
+1. Setup → Object Manager → Create → Custom Object
+   - Label: `Settlement Health Plan`, Plural Label: `Settlement Health Plans`
+   - API Name: `Settlement_Health_Plan__c`
+2. Add two required Lookup fields:
+   - `Settlement__c` — Lookup to Settlement
+   - `Health_Plan__c` — Lookup to Account
+3. Setup → Object Manager → Settlement → Lightning Record Pages → default page → drag a Related List component onto the page → select `Settlement Health Plans` → Save → Activate.
+4. On the demo Settlement record, create 3 junction records linking it to `Health Plan A`, `Health Plan B`, and `Health Plan C` (the same three Accounts used by Import Claimants).
+
+⚠️ **Risk:** none significant — purely declarative, no dependency on the Flow, Apex, or the bulk/volume work above.
+
+✅ Done when: the Settlement record page shows a "Settlement Health Plans" related list with 3 rows.
+
+---
+
+**Settlement Health Plan check:** Related list built and showing 3 rows on the demo settlement. Update Beat 1 of `rawlings-demo/docs/demo-script.md` to point at it once done.
+
+---
+
+## Two-Settlement Restructure — Not Started
+
+**Goal:** Separate the live-import demo settlement from the seeded volume settlement so the two acts of the demo don't contaminate each other — right now both live on the single Settlement record created in Task T.6, which means the ~1,000-record volume seed (Task V.6) and the pre-built deadline record (Task Th.1) sit on top of the same Lien related list the live import uses. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`. Full revised sequence: `rawlings-demo/docs/demo-script.md`.
+
+⚠️ **Run Task R.1 before Task V.6** — the volume seed script needs a target settlement Id that isn't the live one.
+
+---
+
+**Task R.1 — Create the volume settlement**
+*Tool: Salesforce Setup UI | Time: 10 min*
+
+App Launcher → Settlement → New. Give it a distinct name and administrator from the live settlement (`Hip Implant Mass Tort 2024`) so it reads as a separate, longer-running program — e.g. `Talc Powder Mass Tort 2023`, administrator `National Settlement Administration` or a different one, Program Start Date well in the past, Response Window Days `90`, Status `Active`.
+
+✅ Done when: a second Settlement record exists, distinct from the live one, with its Id noted for Tasks V.6 and R.2.
+
+---
+
+**Task R.2 — Move the pre-built deadline record to the volume settlement**
+*Tool: Salesforce Setup UI | Time: 15 min*
+
+Re-create `[Pre-existing] Helen Vasquez` (same field values as Task Th.1: Claimant ID `CLM-PRE-001`, Health Plan A, Stage Coverage Confirmed, Coverage Result Confirmed, Recoverable Amount 5500, Intake Date today minus 82 days) against the volume settlement instead. Delete the original record from the live settlement — if it stays there, the live settlement's Lien related list shows 16 rows instead of a clean 15, and it's not consistent with a settlement whose claimants just arrived live.
+
+✅ Done when: Helen Vasquez shows Red on the volume settlement; the live settlement's Lien related list has no leftover pre-built record.
+
+---
+
+**Task R.3 — Restage the demo environment for two settlements**
+*Tool: Browser + Desktop | Time: 15 min*
+
+Update the staging from Task Th.2: Tab 1 = live settlement (Lien list visible, empty until Import Claimants runs) + Escalation Queue list view in a second tab; a third tab or bookmark ready to jump to the volume settlement for Act 2. Confirm the volume settlement's Summary tiles and Bulk Advance action are visible without needing to search for the record.
+
+✅ Done when: both settlements are one click away during rehearsal, matching the Pre-Demo Setup checklist in `docs/demo-script.md`.
+
+---
+
+**Two-Settlement Restructure check:** Live settlement and volume settlement fully separated. Full dry run of `docs/demo-script.md` end to end, both acts, at least twice before the real demo.
+
+---
+
+## Response Report — Not Started
+
+**Goal:** Replace the live SFTP-callout demo beat (Generate Response File → `ResponseFileWriter.cls` → Python server → ngrok) with a native Salesforce report + Export, removing the only external, network-dependent moving part in the whole demo. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`. Full design: `rawlings-demo/docs/architecture.md` §4.8.
+
+`ResponseFileWriter.cls`, the `generateResponseFile` LWC, and the Python server are **not being removed** — they stay built and functional, just no longer part of the live script.
+
+---
+
+**Task P.1 — Build the "Liens Ready to Respond" report**
+*Tool: Salesforce Setup UI | Time: 20–30 min*
+
+Reports tab → New Report → Report Type: `Liens` (Salesforce's auto-generated default type for the custom object; no custom report type needed).
+- Filters: `Settlement` equals the live settlement, `Stage` equals `Coverage Confirmed`.
+- Columns: Claimant Name, Claimant ID, Health Plan, Recoverable Amount, Response Deadline.
+- Save as `Liens Ready to Respond`, in a folder visible to the demo user.
+
+⚠️ **Risk:** none significant — declarative only, no dependency on Apex, the Flow, or the bulk/volume work above.
+
+✅ Done when: running the report against the live settlement after an import shows exactly the Coverage Confirmed liens from that import.
+
+---
+
+**Task P.2 — Verify Export end-to-end into the outbound folder**
+*Tool: Salesforce + Desktop | Time: 10–15 min*
+
+Run the report → Export → Details Only → Format `.xlsx` (or `.csv`) → save directly into `~/Desktop/sftp-demo/outbound/`. Open the saved file and confirm the columns are readable.
+
+✅ Done when: the exported file lands in `outbound/` and opens cleanly, matching Beat 6 of `docs/demo-script.md`.
+
+---
+
+**Response Report check:** Report built and Export verified into `outbound/`. Rehearse Beat 6 with this path instead of Generate Response File; ngrok and the Python server no longer need to be running for the live demo.
+
+---
+
+## Liens Near Deadline — Not Started
+
+**Goal:** Let a partner see which liens are actually at risk on a deadline without leaving the Settlement page — right now `Deadline_Status__c` just computes a color; nothing surfaces it to anyone unless they're already looking at the right row. Declarative only, no Apex, no LWC, no test class. Full design: `rawlings-demo/docs/architecture.md` §4.9.
+
+---
+
+**Task D.1 — Add the "Liens Near Deadline" dynamic related list**
+*Tool: Salesforce Setup UI / App Builder | Time: 30–45 min*
+
+1. Setup → Object Manager → Settlement → Lightning Record Pages → default page → drag a **Related List - Single** component onto the page.
+2. Configure it against the Lien related list:
+   - Filter: `Deadline_Status__c` equals `Yellow` OR `Deadline_Status__c` equals `Red`, AND `Stage__c` not equal to `Closed`, AND `Stage__c` not equal to `Collected`.
+   - Sort: `Days_Remaining__c` ascending.
+   - Columns: Claimant Name, Stage, Days Remaining, Deadline Status.
+   - Label the component "Liens Near Deadline".
+3. Place it near the Summary tiles (once §V.4/V.5 are built) so both are visible together without scrolling past one to see the other.
+4. Save → Activate → Activate for all users.
+
+⚠️ **Risk:** none significant — purely declarative, no dependency on the Flow, Apex, or any other remaining-work section.
+
+✅ Done when: on both settlements, the component shows only Yellow/Red, non-Closed/Collected liens, soonest deadline on top — verified against Helen Vasquez on the volume settlement and, if time allows, a manually-adjusted test record on the live settlement.
+
+---
+
+**Liens Near Deadline check:** Component built and verified on both settlements. Update Beat 8 of `docs/demo-script.md` to point at it directly.
+
+---
+
+## Escalation Reason Text Update — Not Started
+
+**Goal:** Replace the generic, hardcoded escalation reason with a specific, feasible one so Beat 5 of the demo has an actual story instead of a label. Right now every escalated lien gets the same text, regardless of cause — it doesn't reflect any real business reason. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`.
+
+This is a small edit to an already-built, already-activated Flow (`Lien Automation on Create`, §3.3) — not a new component.
+
+---
+
+**Task E.1 — Update the Escalation Path's Escalation Reason text**
+*Tool: Flow Builder | Time: 10–15 min*
+
+1. Setup → Flows → `Lien Automation on Create` → Edit (this deactivates it while editing — reactivate when done).
+2. Open the `Update Stage to Escalated` element on the Escalation Path.
+3. Change the `Escalation_Reason__c` field value from `Coverage could not be confirmed automatically` to:
+   `Health plan enrollment records on file don't confirm this claimant was covered on the treatment date — eligibility needs to be verified with the health plan before liability can be confirmed.`
+4. Save → Activate.
+
+`docs/flow-build-instructions.md` step 4a already updated to reflect this as the reference value for anyone rebuilding the Flow from scratch (e.g., a fresh scratch org).
+
+⚠️ **Risk:** low — a literal-text change on an existing, tested element. Re-run a quick import test afterward (Task T.14-style) to confirm escalated liens still route correctly and show the new text; delete test records after.
+
+✅ Done when: an escalated lien shows the new, specific reason text; the demo talk track in Beat 5 matches what's actually on the record.
+
+---
+
+**Escalation Reason Text Update check:** Flow updated and reactivated, verified against a fresh test import. Beat 5 of `docs/demo-script.md` already rewritten to match.
