@@ -12,7 +12,7 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 
 **Remaining work:**
 - Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress) (V.1–V.6 done, V.7 remains). See `rawlings-demo/docs/architecture.md` §4 for the full design.
-- Letting a Settlement show its participating health plans — scheduled below in [Settlement Health Plan Junction](#settlement-health-plan-junction--in-progress) (object + data done, related list placement remains). See `rawlings-demo/docs/architecture.md` §4.7 for the full design.
+- ~~Letting a Settlement show its participating health plans~~ — **done**, see [Settlement Health Plan Junction](#settlement-health-plan-junction--done).
 - Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1/R.2 done, R.3 remains). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
 - Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--not-started). See `rawlings-demo/docs/architecture.md` §4.8 for why.
 - Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--not-started). See `rawlings-demo/docs/architecture.md` §4.9 for why.
@@ -22,9 +22,9 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 
 ## Continue Here (as of 2026-07-26)
 
-Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — five short tasks, then the V.7 dry run:
+Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records + related list placement). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — four short tasks, then the V.7 dry run:
 
-1. **Finish Task H.1 (5 min):** Setup → Object Manager → Settlement → Lightning Record Pages → default page → drag a Related List component → select "Settlement Health Plans" → Save → Activate. The object and 3 junction records already exist, so this should show 3 rows immediately.
+1. ~~Finish Task H.1~~ — **done** (related list placed and verified, 3 rows).
 2. **Task P.1 — build the "Liens Ready to Respond" report (20 min):** Reports tab → New Report → Report Type `Liens` → Filters: Settlement = live settlement, Stage = Coverage Confirmed → Columns: Claimant Name, Claimant ID, Health Plan, Recoverable Amount, Response Deadline → Save as `Liens Ready to Respond`.
 3. **Task P.2 — verify Export (10 min):** Run that report → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly.
 4. **Task D.1 — add "Liens Near Deadline" related list (30 min):** Settlement Lightning Record Page → drag a Related List - Single component → filter `Deadline_Status__c` in (Yellow, Red) AND `Stage__c` not in (Closed, Collected) → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
@@ -780,13 +780,13 @@ On the volume settlement: Summary tiles reflect ~1,000 total liens with the expe
 
 ---
 
-## Settlement Health Plan Junction — In Progress
+## Settlement Health Plan Junction — Done
 
 **Goal:** Let the Settlement record show its participating health plans directly, so the Settlement Configuration beat of the demo can actually demonstrate that — right now health plan only exists per-Lien. Decorative only: no Apex, no validation rule, no test class. Full design: `rawlings-demo/docs/architecture.md` §4.7.
 
 ---
 
-**Task H.1 — Build `Settlement_Health_Plan__c` junction and related list**
+**Task H.1 — Build `Settlement_Health_Plan__c` junction and related list** ✅ Done
 *Tool: Salesforce Setup UI | Time: 30–45 min*
 
 1. Setup → Object Manager → Create → Custom Object
@@ -802,7 +802,7 @@ On the volume settlement: Summary tiles reflect ~1,000 total liens with the expe
 
 ✅ Done when: the Settlement record page shows a "Settlement Health Plans" related list with 3 rows.
 
-**Update (2026-07-26):** Steps 1, 2, and 4 done via Claude Code — `Settlement_Health_Plan__c` object + `Settlement__c`/`Health_Plan__c` required Lookup fields deployed as metadata (`force-app/main/default/objects/Settlement_Health_Plan__c/`; `sharingModel` set to `ReadWrite` since there's no Master-Detail field, and `Health_Plan__c`'s delete constraint set to `Restrict` since a required Lookup can't use `SetNull`), and the 3 junction records created on the live settlement via anonymous Apex. **Step 3 (related list placement on the Lightning Record Page) still needs to be done manually** in Lightning App Builder — not attempted via metadata to avoid a blind flexipage edit risking the existing page layout.
+**Update (2026-07-26):** Steps 1, 2, and 4 done via Claude Code — `Settlement_Health_Plan__c` object + `Settlement__c`/`Health_Plan__c` required Lookup fields deployed as metadata (`force-app/main/default/objects/Settlement_Health_Plan__c/`; `sharingModel` set to `ReadWrite` since there's no Master-Detail field, and `Health_Plan__c`'s delete constraint set to `Restrict` since a required Lookup can't use `SetNull`), and the 3 junction records created on the live settlement via anonymous Apex. Step 3 done manually in Lightning App Builder (a "Settlement Health Plans" related list, `relatedListApiName: Settlement_Health_Plans__r`) — verified by retrieving `Settlement_Record_Page.flexipage-meta.xml` afterward and confirming the component + a live query showing 3 junction records on the live settlement.
 
 ---
 
