@@ -1,0 +1,146 @@
+.lsg-group {
+    margin-bottom: 1.1rem;
+}
+
+.lsg-group_last {
+    margin-bottom: 0;
+}
+
+.lsg-group-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #5c6670;
+    margin: 0 0 0.5rem;
+}
+
+/* Overview stats */
+
+.lsg-stat {
+    border-radius: 0.25rem;
+    background: #f3f3f3;
+    padding: 0.6rem 0.75rem;
+    text-align: center;
+}
+
+.lsg-stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.lsg-stat-label {
+    font-size: 0.75rem;
+    color: #5c6670;
+    margin: 0.1rem 0 0;
+}
+
+.lsg-stat_escalated {
+    background: #fff3e6;
+}
+
+.lsg-stat_escalated .lsg-stat-number,
+.lsg-stat_escalated .lsg-stat-label {
+    color: #b95000;
+}
+
+/* Pipeline stage pills */
+
+.lsg-stage-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lsg-stage-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    background: #eef4fc;
+    color: #0b5cab;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.lsg-stage-pill-count {
+    font-weight: 700;
+}
+
+.lsg-muted-note {
+    font-size: 0.75rem;
+    color: #706e6b;
+    margin: 0;
+}
+
+/* Deadline status bar */
+
+.lsg-deadline-bar {
+    display: flex;
+    height: 1.5rem;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.lsg-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 1.25rem;
+}
+
+.lsg-seg_green {
+    background: #2e844a;
+    color: #ffffff;
+}
+
+.lsg-seg_yellow {
+    background: #fe9339;
+    color: #4b2504;
+}
+
+.lsg-seg_red {
+    background: #ba0517;
+    color: #ffffff;
+}
+
+.lsg-deadline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #5c6670;
+}
+
+.lsg-deadline-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.lsg-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.lsg-dot_green {
+    background: #2e844a;
+}
+
+.lsg-dot_yellow {
+    background: #fe9339;
+}
+
+.lsg-dot_red {
+    background: #ba0517;
+}

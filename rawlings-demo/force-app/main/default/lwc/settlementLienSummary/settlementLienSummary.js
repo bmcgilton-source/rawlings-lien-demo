@@ -51,6 +51,24 @@ export default class SettlementLienSummary extends LightningElement {
         return this.summary ? this.summary.stageCounts : [];
     }
 
+    get activeStageTiles() {
+        return this.stageTiles.filter((tile) => tile.count > 0);
+    }
+
+    get hasActiveStages() {
+        return this.activeStageTiles.length > 0;
+    }
+
+    get hiddenStageNote() {
+        const hiddenCount = this.stageTiles.length - this.activeStageTiles.length;
+        if (hiddenCount <= 0) {
+            return '';
+        }
+        return hiddenCount === 1
+            ? '1 stage with 0 liens hidden'
+            : `${hiddenCount} stages with 0 liens hidden`;
+    }
+
     get totalLiens() {
         return this.summary ? this.summary.totalLiens : 0;
     }
@@ -69,6 +87,20 @@ export default class SettlementLienSummary extends LightningElement {
 
     get redCount() {
         return this.summary ? this.summary.redCount : 0;
+    }
+
+    get hasDeadlineData() {
+        return this.greenCount + this.yellowCount + this.redCount > 0;
+    }
+
+    get deadlineSegments() {
+        return [
+            { key: 'green', count: this.greenCount, cssClass: 'lsg-seg lsg-seg_green' },
+            { key: 'yellow', count: this.yellowCount, cssClass: 'lsg-seg lsg-seg_yellow' },
+            { key: 'red', count: this.redCount, cssClass: 'lsg-seg lsg-seg_red' }
+        ]
+            .filter((seg) => seg.count > 0)
+            .map((seg) => ({ ...seg, style: `flex-grow: ${seg.count}` }));
     }
 
     async handleRefresh() {

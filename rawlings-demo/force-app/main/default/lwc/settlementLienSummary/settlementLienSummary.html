@@ -28,54 +28,64 @@
         </template>
 
         <template if:true={isReady}>
-            <div class="slds-p-around_medium">
-                <div class="slds-grid slds-wrap slds-gutters_x-small slds-m-bottom_medium">
-                    <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-6 slds-p-around_xx-small">
-                        <div class="slds-box slds-box_x-small slds-text-align_center">
-                            <p class="slds-text-heading_medium">{totalLiens}</p>
-                            <p class="slds-text-body_small slds-text-color_weak">Total Liens</p>
-                        </div>
-                    </div>
-                    <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-6 slds-p-around_xx-small">
-                        <div class="slds-box slds-box_x-small slds-text-align_center">
-                            <lightning-icon icon-name="utility:warning" variant="warning" size="x-small"></lightning-icon>
-                            <p class="slds-text-heading_medium">{escalatedCount}</p>
-                            <p class="slds-text-body_small slds-text-color_weak">Escalated</p>
-                        </div>
-                    </div>
-                    <template for:each={stageTiles} for:item="tile">
-                        <div key={tile.stage} class="slds-col slds-size_1-of-2 slds-medium-size_1-of-6 slds-p-around_xx-small">
-                            <div class="slds-box slds-box_x-small slds-text-align_center">
-                                <p class="slds-text-heading_medium">{tile.count}</p>
-                                <p class="slds-text-body_small slds-text-color_weak">{tile.stage}</p>
+            <div class="slds-p-around_medium lsg-summary">
+
+                <div class="lsg-group">
+                    <p class="lsg-group-label">Overview</p>
+                    <div class="slds-grid slds-gutters_x-small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="lsg-stat">
+                                <p class="lsg-stat-number">{totalLiens}</p>
+                                <p class="lsg-stat-label">Total Liens</p>
                             </div>
                         </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="lsg-stat lsg-stat_escalated">
+                                <p class="lsg-stat-number">{escalatedCount}</p>
+                                <p class="lsg-stat-label">Escalated</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lsg-group">
+                    <p class="lsg-group-label">Pipeline Stage</p>
+                    <template if:true={hasActiveStages}>
+                        <div class="lsg-stage-row">
+                            <template for:each={activeStageTiles} for:item="tile">
+                                <span key={tile.stage} class="lsg-stage-pill">
+                                    <span class="lsg-stage-pill-count">{tile.count}</span> {tile.stage}
+                                </span>
+                            </template>
+                            <template if:true={hiddenStageNote}>
+                                <span class="lsg-muted-note">{hiddenStageNote}</span>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={hasActiveStages}>
+                        <p class="lsg-muted-note">No liens currently sitting in a pipeline stage.</p>
                     </template>
                 </div>
 
-                <div class="slds-grid slds-wrap slds-gutters_x-small">
-                    <div class="slds-col slds-size_1-of-3 slds-p-around_xx-small">
-                        <div class="slds-box slds-box_x-small slds-text-align_center">
-                            <lightning-icon icon-name="utility:success" variant="success" size="x-small"></lightning-icon>
-                            <p class="slds-text-heading_medium">{greenCount}</p>
-                            <p class="slds-text-body_small slds-text-color_weak">Green</p>
+                <div class="lsg-group lsg-group_last">
+                    <p class="lsg-group-label">Deadline Status</p>
+                    <template if:true={hasDeadlineData}>
+                        <div class="lsg-deadline-bar">
+                            <template for:each={deadlineSegments} for:item="seg">
+                                <div key={seg.key} class={seg.cssClass} style={seg.style}>{seg.count}</div>
+                            </template>
                         </div>
-                    </div>
-                    <div class="slds-col slds-size_1-of-3 slds-p-around_xx-small">
-                        <div class="slds-box slds-box_x-small slds-text-align_center">
-                            <lightning-icon icon-name="utility:warning" variant="warning" size="x-small"></lightning-icon>
-                            <p class="slds-text-heading_medium">{yellowCount}</p>
-                            <p class="slds-text-body_small slds-text-color_weak">Yellow</p>
+                        <div class="lsg-deadline-legend">
+                            <span><i class="lsg-dot lsg-dot_green"></i>Green - 20+ days</span>
+                            <span><i class="lsg-dot lsg-dot_yellow"></i>Yellow - 11-20 days</span>
+                            <span><i class="lsg-dot lsg-dot_red"></i>Red - 10 or fewer days</span>
                         </div>
-                    </div>
-                    <div class="slds-col slds-size_1-of-3 slds-p-around_xx-small">
-                        <div class="slds-box slds-box_x-small slds-text-align_center">
-                            <lightning-icon icon-name="utility:error" variant="error" size="small"></lightning-icon>
-                            <p class="slds-text-heading_large">{redCount}</p>
-                            <p class="slds-text-body_small slds-text-color_weak">Red</p>
-                        </div>
-                    </div>
+                    </template>
+                    <template if:false={hasDeadlineData}>
+                        <p class="lsg-muted-note">No liens with a tracked response deadline.</p>
+                    </template>
                 </div>
+
             </div>
         </template>
     </lightning-card>
