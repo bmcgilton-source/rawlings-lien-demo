@@ -13,7 +13,7 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 **Remaining work:**
 - Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo-not-started). See `rawlings-demo/docs/architecture.md` §4 for the full design.
 - Letting a Settlement show its participating health plans — scheduled below in [Settlement Health Plan Junction](#settlement-health-plan-junction--not-started). See `rawlings-demo/docs/architecture.md` §4.7 for the full design.
-- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--not-started). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
+- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1 done, R.2/R.3 remain). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
 - Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--not-started). See `rawlings-demo/docs/architecture.md` §4.8 for why.
 - Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--not-started). See `rawlings-demo/docs/architecture.md` §4.9 for why.
 - Making the escalation reason text specific instead of generic — a small edit to the already-built Flow, scheduled below in [Escalation Reason Text Update](#escalation-reason-text-update--not-started).
@@ -741,7 +741,7 @@ Select → Preview → Submitting → Queued → Progress (polls `getJobStatus` 
 
 **Task V.6 — Seed ~1,000 synthetic Lien records**
 *Tool: Terminal (`sf apex run`) | Time: 30–45 min*
-⚠️ **Depends on Task R.1** (below) — the volume settlement must exist first. Do not run this against the live-import settlement.
+✅ **Task R.1 done** — volume settlement `Talc Powder Mass Tort 2023` (Id `a02dL00000p27A8QAI`) exists. Do not run this against the live-import settlement.
 
 Write and run `scripts/apex/seedVolumeLiens.apex` targeting the volume settlement's Id — single synchronous anonymous Apex script (no async chunking needed at this volume). ~850 records land at Coverage Confirmed via the automated Flow path; ~150 redistributed across the other 7 downstream stages via a post-insert bulk update. `Claimant_ID__c` prefixed `SYN-` to keep synthetic data distinguishable from the hand-built demo records.
 
@@ -749,7 +749,7 @@ Write and run `scripts/apex/seedVolumeLiens.apex` targeting the volume settlemen
 
 ✅ Done when: `SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'` matches the target distribution, where `:id` is the volume settlement.
 
-**Update (2026-07-26):** `scripts/apex/seedVolumeLiens.apex` written per the §4.6 spec — 850/150 split, 7-stage redistribution (Pre-Validation excluded, matching `BulkStageTransitionController`'s transition map), `Response_Deadline__c` randomized -15 to +75 days, intake dates staggered older for downstream stages. **Not yet run** — still blocked on Task R.1 (volume settlement doesn't exist yet). Set `volumeSettlementName` at the top of the script once R.1 is done, then run it.
+**Update (2026-07-26):** `scripts/apex/seedVolumeLiens.apex` written per the §4.6 spec — 850/150 split, 7-stage redistribution (Pre-Validation excluded, matching `BulkStageTransitionController`'s transition map), `Response_Deadline__c` randomized -15 to +75 days, intake dates staggered older for downstream stages. `volumeSettlementName` now set to `'Talc Powder Mass Tort 2023'` — **ready to run**, no longer blocked.
 
 ---
 
@@ -794,7 +794,7 @@ On the volume settlement: Summary tiles reflect ~1,000 total liens with the expe
 
 ---
 
-## Two-Settlement Restructure — Not Started
+## Two-Settlement Restructure — In Progress
 
 **Goal:** Separate the live-import demo settlement from the seeded volume settlement so the two acts of the demo don't contaminate each other — right now both live on the single Settlement record created in Task T.6, which means the ~1,000-record volume seed (Task V.6) and the pre-built deadline record (Task Th.1) sit on top of the same Lien related list the live import uses. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`. Full revised sequence: `rawlings-demo/docs/demo-script.md`.
 
@@ -802,12 +802,14 @@ On the volume settlement: Summary tiles reflect ~1,000 total liens with the expe
 
 ---
 
-**Task R.1 — Create the volume settlement**
+**Task R.1 — Create the volume settlement** ✅ Done
 *Tool: Salesforce Setup UI | Time: 10 min*
 
 App Launcher → Settlement → New. Give it a distinct name and administrator from the live settlement (`Hip Implant Mass Tort 2024`) so it reads as a separate, longer-running program — e.g. `Talc Powder Mass Tort 2023`, administrator `National Settlement Administration` or a different one, Program Start Date well in the past, Response Window Days `90`, Status `Active`.
 
 ✅ Done when: a second Settlement record exists, distinct from the live one, with its Id noted for Tasks V.6 and R.2.
+
+**Result:** Created as `Talc Powder Mass Tort 2023` — **Id `a02dL00000p27A8QAI`** — Administrator `Continental Claims Administrators`, Response Window Days `90`, Status `Active`, Program Start Date `2024-11-01`. Distinct from the live settlement (`Hip Implant Mass Tort 2024`, Id `a02dL00000opHs8QAE`). This Id is the target for Task V.6's seed script and Task R.2's record move.
 
 ---
 
