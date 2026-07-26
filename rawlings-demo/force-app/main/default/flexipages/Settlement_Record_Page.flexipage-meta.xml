@@ -12,6 +12,9 @@
                         <valueListItems>
                             <value>Settlement__c.Generate_Response_File</value>
                         </valueListItems>
+                        <valueListItems>
+                            <value>Settlement__c.Bulk_Advance_Liens</value>
+                        </valueListItems>
                     </valueList>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
@@ -228,7 +231,7 @@
         </itemInstances>
         <itemInstances>
             <componentInstance>
-                <componentName>c:settlementLienSummary</componentName>
+                <componentName>settlementLienSummary</componentName>
                 <identifier>c_settlementLienSummary</identifier>
             </componentInstance>
         </itemInstances>

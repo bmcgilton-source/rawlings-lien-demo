@@ -1,0 +1,87 @@
+<template>
+    <template if:true={isLoading}>
+        <div class="slds-p-around_medium slds-align_absolute-center" style="min-height: 6rem;">
+            <lightning-spinner alternative-text="Loading stage options..." size="medium"></lightning-spinner>
+        </div>
+    </template>
+
+    <template if:true={isSelect}>
+        <div class="slds-p-around_medium">
+            <lightning-combobox
+                label="From Stage"
+                placeholder="Select a stage"
+                options={stageOptions}
+                value={fromStage}
+                onchange={handleFromStageChange}
+            ></lightning-combobox>
+
+            <template if:true={toStage}>
+                <p class="slds-m-top_small">
+                    To Stage: <strong>{toStage}</strong>
+                </p>
+            </template>
+
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <lightning-button
+                    variant="neutral"
+                    label="Cancel"
+                    onclick={handleCancel}
+                    class="slds-m-right_small"
+                ></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    label="Preview"
+                    disabled={isPreviewDisabled}
+                    onclick={handlePreview}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={isPreview}>
+        <div class="slds-p-around_medium">
+            <p>{previewMessage}</p>
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <lightning-button
+                    variant="neutral"
+                    label="Back"
+                    onclick={handleBackToSelect}
+                    class="slds-m-right_small"
+                ></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    label="Confirm"
+                    disabled={isConfirmDisabled}
+                    onclick={handleConfirm}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={isSubmitting}>
+        <div class="slds-p-around_medium slds-align_absolute-center" style="min-height: 6rem;">
+            <lightning-spinner alternative-text="Submitting bulk transition..." size="medium"></lightning-spinner>
+        </div>
+    </template>
+
+    <template if:true={isProgress}>
+        <div class="slds-p-around_medium">
+            <p class="slds-m-bottom_small">
+                Advancing liens from <strong>{fromStage}</strong> to <strong>{toStage}</strong>...
+            </p>
+            <lightning-progress-bar value={progressPercent} size="large"></lightning-progress-bar>
+            <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small">{progressLabel}</p>
+        </div>
+    </template>
+
+    <template if:true={isError}>
+        <div class="slds-p-around_medium">
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+                <span>{errorMessage}</span>
+            </div>
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <lightning-button variant="neutral" label="Cancel" onclick={handleCancel}></lightning-button>
+            </div>
+        </div>
+    </template>
+</template>

@@ -43,7 +43,11 @@ public with sharing class BulkStageTransitionController {
         return Database.executeBatch(new LienBulkStageTransitionBatch(settlementId, fromStage, toStage), 2000);
     }
 
-    @AuraEnabled(cacheable=true)
+    // Not cacheable: this is polled imperatively every few seconds while a batch runs,
+    // and a cacheable Apex method can have its response served from the client cache on
+    // repeat calls with the same jobId — which would freeze the progress UI on the job's
+    // first-seen status instead of reflecting its actual current state.
+    @AuraEnabled
     public static BatchJobStatus getJobStatus(Id jobId) {
         List<AsyncApexJob> jobs = [
             SELECT Status, JobItemsProcessed, TotalJobItems, NumberOfErrors
