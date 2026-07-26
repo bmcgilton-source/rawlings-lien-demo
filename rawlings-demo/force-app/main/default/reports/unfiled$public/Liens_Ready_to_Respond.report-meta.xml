@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>Lien__c.Claimant_Name__c</field>
+    </columns>
+    <columns>
+        <field>Lien__c.Claimant_ID__c</field>
+    </columns>
+    <columns>
+        <field>Lien__c.Health_Plan__c</field>
+    </columns>
+    <columns>
+        <field>Lien__c.Recoverable_Amount__c</field>
+    </columns>
+    <columns>
+        <field>Lien__c.Response_Deadline__c</field>
+    </columns>
+    <filter>
+        <criteriaItems>
+            <column>Lien__c.Settlement__c</column>
+            <operator>equals</operator>
+            <value>Hip Implant Mass Tort 2024</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>Lien__c.Stage__c</column>
+            <operator>equals</operator>
+            <value>Coverage Confirmed</value>
+        </criteriaItems>
+    </filter>
+    <format>Tabular</format>
+    <name>Liens Ready to Respond</name>
+    <reportType>CustomEntity$Lien__c</reportType>
+    <showDetails>true</showDetails>
+</Report>

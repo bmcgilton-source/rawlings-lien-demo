@@ -14,7 +14,7 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 - Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress) (V.1–V.6 done, V.7 remains). See `rawlings-demo/docs/architecture.md` §4 for the full design.
 - ~~Letting a Settlement show its participating health plans~~ — **done**, see [Settlement Health Plan Junction](#settlement-health-plan-junction--done).
 - Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1/R.2 done, R.3 remains). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
-- Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--not-started). See `rawlings-demo/docs/architecture.md` §4.8 for why.
+- Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--in-progress) (P.1 done, P.2 remains). See `rawlings-demo/docs/architecture.md` §4.8 for why.
 - Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--not-started). See `rawlings-demo/docs/architecture.md` §4.9 for why.
 - ~~Making the escalation reason text specific instead of generic~~ — **done**, see [Escalation Reason Text Update](#escalation-reason-text-update--done).
 
@@ -25,8 +25,8 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records + related list placement). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — four short tasks, then the V.7 dry run:
 
 1. ~~Finish Task H.1~~ — **done** (related list placed and verified, 3 rows).
-2. **Task P.1 — build the "Liens Ready to Respond" report (20 min):** Reports tab → New Report → Report Type `Liens` → Filters: Settlement = live settlement, Stage = Coverage Confirmed → Columns: Claimant Name, Claimant ID, Health Plan, Recoverable Amount, Response Deadline → Save as `Liens Ready to Respond`.
-3. **Task P.2 — verify Export (10 min):** Run that report → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly.
+2. ~~Task P.1 — build the "Liens Ready to Respond" report~~ — **done** (deployed as metadata, verified via REST API — see Response Report section for details).
+3. **Task P.2 — verify Export (10 min):** Reports tab → open `Liens Ready to Respond` → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly. (Run a live Import Claimants first if you want non-zero rows to look at — the report is currently correct-but-empty since the live settlement has no Coverage Confirmed liens at rest.)
 4. **Task D.1 — add "Liens Near Deadline" related list (30 min):** Settlement Lightning Record Page → drag a Related List - Single component → filter `Deadline_Status__c` in (Yellow, Red) AND `Stage__c` not in (Closed, Collected) → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
 5. **Task R.3 — restage browser/desktop (15 min):** Tab 1 = live settlement + Escalation Queue tab; bookmark/tab ready for the volume settlement. Confirm Summary tiles + Bulk Advance are visible without searching.
 
@@ -853,7 +853,7 @@ Update the staging from Task Th.2: Tab 1 = live settlement (Lien list visible, e
 
 ---
 
-## Response Report — Not Started
+## Response Report — In Progress
 
 **Goal:** Replace the live SFTP-callout demo beat (Generate Response File → `ResponseFileWriter.cls` → Python server → ngrok) with a native Salesforce report + Export, removing the only external, network-dependent moving part in the whole demo. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`. Full design: `rawlings-demo/docs/architecture.md` §4.8.
 
@@ -861,7 +861,7 @@ Update the staging from Task Th.2: Tab 1 = live settlement (Lien list visible, e
 
 ---
 
-**Task P.1 — Build the "Liens Ready to Respond" report**
+**Task P.1 — Build the "Liens Ready to Respond" report** ✅ Done
 *Tool: Salesforce Setup UI | Time: 20–30 min*
 
 Reports tab → New Report → Report Type: `Liens` (Salesforce's auto-generated default type for the custom object; no custom report type needed).
@@ -872,6 +872,8 @@ Reports tab → New Report → Report Type: `Liens` (Salesforce's auto-generated
 ⚠️ **Risk:** none significant — declarative only, no dependency on Apex, the Flow, or the bulk/volume work above.
 
 ✅ Done when: running the report against the live settlement after an import shows exactly the Coverage Confirmed liens from that import.
+
+**Update (2026-07-26):** Built via Claude Code as deployable metadata instead of Report Builder clicking — `force-app/main/default/reports/unfiled$public/Liens_Ready_to_Respond.report-meta.xml`, `reportType` `CustomEntity$Lien__c` (the actual API name behind the "Liens" label), filed in the standard Public Reports folder (`unfiled$public`) so it's visible without a new folder. Two non-obvious things the metadata didn't get right on the first pass, found via the Analytics REST API rather than guessing: (1) the report type's real API name isn't just `Lien` — had to hit `/services/data/v67.0/analytics/reportTypes` to find `CustomEntity$Lien__c`; (2) a filter on a Lookup column (`Lien__c.Settlement__c`) needs the related record's **Name** as the filter value, not its Id — using the Id silently matched zero rows with no deploy-time error. Verified end-to-end with a throwaway test Lien inserted via anonymous Apex (Coverage Confirmed, on the live settlement): report correctly returned exactly that 1 row with all 5 columns, then returned to 0 rows after the test record was deleted, confirming both filters work and the live settlement is left clean.
 
 ---
 
