@@ -15,7 +15,7 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 - ~~Letting a Settlement show its participating health plans~~ — **done**, see [Settlement Health Plan Junction](#settlement-health-plan-junction--done).
 - Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1/R.2 done, R.3 remains). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
 - Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--in-progress) (P.1 done, P.2 remains). See `rawlings-demo/docs/architecture.md` §4.8 for why.
-- Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--not-started). See `rawlings-demo/docs/architecture.md` §4.9 for why.
+- Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--in-progress) (List View done, component placement remains). See `rawlings-demo/docs/architecture.md` §4.9 for why.
 - ~~Making the escalation reason text specific instead of generic~~ — **done**, see [Escalation Reason Text Update](#escalation-reason-text-update--done).
 
 ---
@@ -27,7 +27,7 @@ Picking up on another machine? Everything CLI/metadata-automatable is done (seed
 1. ~~Finish Task H.1~~ — **done** (related list placed and verified, 3 rows).
 2. ~~Task P.1 — build the "Liens Ready to Respond" report~~ — **done** (deployed as metadata, verified via REST API — see Response Report section for details).
 3. **Task P.2 — verify Export (10 min):** Reports tab → open `Liens Ready to Respond` → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly. (Run a live Import Claimants first if you want non-zero rows to look at — the report is currently correct-but-empty since the live settlement has no Coverage Confirmed liens at rest.)
-4. **Task D.1 — add "Liens Near Deadline" related list (30 min):** Settlement Lightning Record Page → drag a Related List - Single component → filter `Deadline_Status__c` in (Yellow, Red) AND `Stage__c` not in (Closed, Collected) → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
+4. **Finish Task D.1 (15 min):** the filter already exists as a List View (`Liens Near Deadline`, deployed and verified) — Settlement Lightning Record Page → drag a Related List - Single component → point it at the Lien related list, filtered by the `Liens Near Deadline` List View → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
 5. **Task R.3 — restage browser/desktop (15 min):** Tab 1 = live settlement + Escalation Queue tab; bookmark/tab ready for the volume settlement. Confirm Summary tiles + Bulk Advance are visible without searching.
 
 Then **Task V.7 — full live dry run** (see [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress)) is the last thing standing between here and a rehearsed demo. Full detail for each numbered task above is in its own section further down this document — this block is just the fast-resume summary.
@@ -890,7 +890,7 @@ Run the report → Export → Details Only → Format `.xlsx` (or `.csv`) → sa
 
 ---
 
-## Liens Near Deadline — Not Started
+## Liens Near Deadline — In Progress
 
 **Goal:** Let a partner see which liens are actually at risk on a deadline without leaving the Settlement page — right now `Deadline_Status__c` just computes a color; nothing surfaces it to anyone unless they're already looking at the right row. Declarative only, no Apex, no LWC, no test class. Full design: `rawlings-demo/docs/architecture.md` §4.9.
 
@@ -911,6 +911,8 @@ Run the report → Export → Details Only → Format `.xlsx` (or `.csv`) → sa
 ⚠️ **Risk:** none significant — purely declarative, no dependency on the Flow, Apex, or any other remaining-work section.
 
 ✅ Done when: on both settlements, the component shows only Yellow/Red, non-Closed/Collected liens, soonest deadline on top — verified against Helen Vasquez on the volume settlement and, if time allows, a manually-adjusted test record on the live settlement.
+
+**Update (2026-07-26):** Step 2's filter built and deployed via Claude Code as a `Lien__c` List View instead of hand-configuring criteria in App Builder — `Liens_Near_Deadline.listView-meta.xml` (`Deadline_Status__c != 'Green'` AND `Stage__c != 'Closed'` AND `Stage__c != 'Collected'`; `Deadline_Status__c` only ever resolves to Green/Yellow/Red per its formula, so `!= 'Green'` is equivalent to the spec's `in (Yellow, Red)`). Verified via the List View REST API: sample rows returned only Yellow/Red statuses and no Closed/Collected stages, and a SOQL count confirms 381 records org-wide currently match. **Steps 1, 3, and 4 (placing a Related List - Single component on the Settlement page, pointing it at this List View as its filter, setting the sort to `Days_Remaining__c` ascending, and positioning it near the Summary tiles) still need to be done manually** in Lightning App Builder — same reasoning as Task H.1's related list: not attempted as a blind flexipage edit.
 
 ---
 

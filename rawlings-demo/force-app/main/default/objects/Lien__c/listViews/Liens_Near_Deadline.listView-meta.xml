@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Liens_Near_Deadline</fullName>
+    <label>Liens Near Deadline</label>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Deadline_Status__c</field>
+        <operation>notEqual</operation>
+        <value>Green</value>
+    </filters>
+    <filters>
+        <field>Stage__c</field>
+        <operation>notEqual</operation>
+        <value>Closed</value>
+    </filters>
+    <filters>
+        <field>Stage__c</field>
+        <operation>notEqual</operation>
+        <value>Collected</value>
+    </filters>
+    <columns>Claimant_Name__c</columns>
+    <columns>Stage__c</columns>
+    <columns>Days_Remaining__c</columns>
+    <columns>Deadline_Status__c</columns>
+</ListView>
