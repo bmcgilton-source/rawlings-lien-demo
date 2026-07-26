@@ -56,6 +56,26 @@
                 <identifier>RecordNameField</identifier>
             </fieldInstance>
         </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>none</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.Status__c</fieldItem>
+                <identifier>RecordStatus_cField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>none</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.Administrator__c</fieldItem>
+                <identifier>RecordAdministrator_cField</identifier>
+            </fieldInstance>
+        </itemInstances>
         <name>Facet-efc0a394-0376-444c-a3a4-0b7800b41ed3</name>
         <type>Facet</type>
     </flexiPageRegions>
@@ -68,6 +88,26 @@
                 </fieldInstanceProperties>
                 <fieldItem>Record.OwnerId</fieldItem>
                 <identifier>RecordOwnerIdField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>none</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.Program_Start_Date__c</fieldItem>
+                <identifier>RecordProgram_Start_Date_cField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>none</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.Response_Window_Days__c</fieldItem>
+                <identifier>RecordResponse_Window_Days_cField</identifier>
             </fieldInstance>
         </itemInstances>
         <name>Facet-d1662170-600d-4b05-b766-1fd957edcef9</name>
@@ -188,6 +228,12 @@
         </itemInstances>
         <itemInstances>
             <componentInstance>
+                <componentName>c:settlementLienSummary</componentName>
+                <identifier>c_settlementLienSummary</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
                 <componentInstanceProperties>
                     <name>actionNames</name>
                     <valueList>
@@ -258,10 +304,24 @@
         <name>main</name>
         <type>Region</type>
     </flexiPageRegions>
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>showLegacyActivityComposer</name>
+                    <value>false</value>
+                </componentInstanceProperties>
+                <componentName>runtime_sales_activities:activityPanel</componentName>
+                <identifier>runtime_sales_activities_activityPanel</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>sidebar</name>
+        <type>Region</type>
+    </flexiPageRegions>
     <masterLabel>Settlement Record Page</masterLabel>
     <sobjectType>Settlement__c</sobjectType>
     <template>
-        <name>flexipage:recordHomeSimpleViewTemplate</name>
+        <name>flexipage:recordHomeTemplateDesktop</name>
         <properties>
             <name>enablePageActionConfig</name>
             <value>false</value>
