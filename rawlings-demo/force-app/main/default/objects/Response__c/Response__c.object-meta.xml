@@ -11,6 +11,6 @@
     <sharingModel>ControlledByParent</sharingModel>
     <enableActivities>false</enableActivities>
     <enableFeeds>false</enableFeeds>
-    <enableHistory>false</enableHistory>
+    <enableHistory>true</enableHistory>
     <enableReports>true</enableReports>
 </CustomObject>

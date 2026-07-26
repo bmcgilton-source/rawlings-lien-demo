@@ -3,5 +3,6 @@
     <fullName>Escalation_Reason__c</fullName>
     <label>Escalation Reason</label>
     <length>255</length>
+    <trackHistory>true</trackHistory>
     <type>Text</type>
 </CustomField>
