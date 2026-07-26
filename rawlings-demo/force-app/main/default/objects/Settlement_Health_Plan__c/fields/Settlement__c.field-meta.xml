@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Settlement__c</fullName>
+    <label>Settlement</label>
+    <type>Lookup</type>
+    <referenceTo>Settlement__c</referenceTo>
+    <relationshipLabel>Settlement Health Plans</relationshipLabel>
+    <relationshipName>Settlement_Health_Plans</relationshipName>
+    <required>true</required>
+    <deleteConstraint>Cascade</deleteConstraint>
+</CustomField>

@@ -788,6 +788,8 @@ On the volume settlement: Summary tiles reflect ~1,000 total liens with the expe
 
 ✅ Done when: the Settlement record page shows a "Settlement Health Plans" related list with 3 rows.
 
+**Update (2026-07-26):** Steps 1, 2, and 4 done via Claude Code — `Settlement_Health_Plan__c` object + `Settlement__c`/`Health_Plan__c` required Lookup fields deployed as metadata (`force-app/main/default/objects/Settlement_Health_Plan__c/`; `sharingModel` set to `ReadWrite` since there's no Master-Detail field, and `Health_Plan__c`'s delete constraint set to `Restrict` since a required Lookup can't use `SetNull`), and the 3 junction records created on the live settlement via anonymous Apex. **Step 3 (related list placement on the Lightning Record Page) still needs to be done manually** in Lightning App Builder — not attempted via metadata to avoid a blind flexipage edit risking the existing page layout.
+
 ---
 
 **Settlement Health Plan check:** Related list built and showing 3 rows on the demo settlement. Update Beat 1 of `rawlings-demo/docs/demo-script.md` to point at it once done.
@@ -813,12 +815,14 @@ App Launcher → Settlement → New. Give it a distinct name and administrator f
 
 ---
 
-**Task R.2 — Move the pre-built deadline record to the volume settlement**
+**Task R.2 — Move the pre-built deadline record to the volume settlement** ✅ Done
 *Tool: Salesforce Setup UI | Time: 15 min*
 
 Re-create `[Pre-existing] Helen Vasquez` (same field values as Task Th.1: Claimant ID `CLM-PRE-001`, Health Plan A, Stage Coverage Confirmed, Coverage Result Confirmed, Recoverable Amount 5500, Intake Date today minus 82 days) against the volume settlement instead. Delete the original record from the live settlement — if it stays there, the live settlement's Lien related list shows 16 rows instead of a clean 15, and it's not consistent with a settlement whose claimants just arrived live.
 
 ✅ Done when: Helen Vasquez shows Red on the volume settlement; the live settlement's Lien related list has no leftover pre-built record.
+
+**Update (2026-07-26):** Verified already satisfied from earlier work — `CLM-PRE-001` has `Settlement__c` on the volume settlement (`a02dL00000p27A8QAI`), `Deadline_Status__c = Red` (`Days_Remaining__c = 8`), and the live settlement's Lien related list is a clean 15 rows (`CLM-00001`–`CLM-00015`) with no leftover. Note: her `Stage__c` reads `Response Ready`, not `Coverage Confirmed` as originally specced — she was swept up in an earlier Bulk Advance verification pass before the volume seed existed. Left as-is: `docs/demo-script.md` only references her Red deadline status, never her stage, so nothing depends on the original value.
 
 ---
 
@@ -920,6 +924,8 @@ This is a small edit to an already-built, already-activated Flow (`Lien Automati
 ⚠️ **Risk:** low — a literal-text change on an existing, tested element. Re-run a quick import test afterward (Task T.14-style) to confirm escalated liens still route correctly and show the new text; delete test records after.
 
 ✅ Done when: an escalated lien shows the new, specific reason text; the demo talk track in Beat 5 matches what's actually on the record.
+
+**Update (2026-07-26):** Done via Claude Code, metadata-first instead of Flow Builder: retrieved the Flow (API name is actually `Lien_Routing_Flow` — "Lien Automation on Create" is just its label), edited the `stringValue` on `Update_Stage_to_Escalated` directly in the retrieved XML, and redeployed. The file's `<status>` was already `Active`, so the deploy activated the new version automatically — no separate reactivation step needed. Verified with a throwaway test Lien (`Coverage_Result__c='Unable to Confirm'`, the actual restricted-picklist value — not `'Denied'`, which doesn't exist on this field): routed to `Escalated` and `Escalation_Reason__c` shows the new text exactly. Test record deleted after.
 
 ---
 
