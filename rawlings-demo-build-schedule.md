@@ -40,6 +40,8 @@ Run `sf --version`. If you get a version number, done. If not, install from deve
 
 ✅ Done when: `sf --version` returns a version number.
 
+**Update (2026-07-26):** CLI wasn't actually on this machine — installed via `npm install --global @salesforce/cli`, then added `%APPDATA%\npm` to the user PATH (npm's global bin dir wasn't on it). Already authenticated to org alias `rawlings-demo` from an earlier session; `sf --version` and `sf org list` both confirmed working.
+
 ---
 
 **Task M.2 — Authenticate Dev Hub**
@@ -724,6 +726,8 @@ Stat tiles: Total, Escalated, per-stage row, then Green/Yellow/Red row (Red emph
 
 ✅ Done when: deployed and verified against the existing 15–25 row demo data — tile counts match a manual count.
 
+**Update (2026-07-26):** Redesigned the tile layout — the original flat grid of 12 identical boxes read as one undifferentiated block. Now grouped into three labeled sections: Overview (Total + Escalated), Pipeline Stage (pills, zero-count stages hidden behind an "N stages with 0 liens hidden" note instead of shown dim), and Deadline Status (a proportional Green/Yellow/Red bar with an explicit legend — "Green · 20+ days", "Yellow · 11–20 days", "Red · 10 or fewer days" — so the color thresholds aren't left for a partner to guess at). Added `settlementLienSummary.css` (didn't exist before). Deployed to the `rawlings-demo` org and confirmed live on the Settlement record page.
+
 ---
 
 **Task V.5 — Build `bulkStageTransition` LWC + Quick Action + page placement**
@@ -744,6 +748,8 @@ Write and run `scripts/apex/seedVolumeLiens.apex` targeting the volume settlemen
 ⚠️ **Risk:** the Flow fires on every insert with no bypass — every seeded row must insert as `Coverage_Result__c='Confirmed'` with a positive amount, or it will be forced to `Escalated` and flood the queue. See architecture.md §4.6 for the full reasoning.
 
 ✅ Done when: `SELECT COUNT() FROM Lien__c WHERE Settlement__c=:id AND Claimant_ID__c LIKE 'SYN-%'` matches the target distribution, where `:id` is the volume settlement.
+
+**Update (2026-07-26):** `scripts/apex/seedVolumeLiens.apex` written per the §4.6 spec — 850/150 split, 7-stage redistribution (Pre-Validation excluded, matching `BulkStageTransitionController`'s transition map), `Response_Deadline__c` randomized -15 to +75 days, intake dates staggered older for downstream stages. **Not yet run** — still blocked on Task R.1 (volume settlement doesn't exist yet). Set `volumeSettlementName` at the top of the script once R.1 is done, then run it.
 
 ---
 
