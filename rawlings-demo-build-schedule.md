@@ -11,12 +11,26 @@
 Everything from Task M.1 through Th.5 is built and demoed — the full intake-through-response slice with SFTP simulation, escalation routing, deadline monitoring, audit history, and the full-lifecycle Path chevron. See `rawlings-demo/docs/architecture.md` §3 (Built Components) for the current reference — that document is now the source of truth for what's built, and this schedule is kept as a record of how it was built.
 
 **Remaining work:**
-- Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo-not-started). See `rawlings-demo/docs/architecture.md` §4 for the full design.
-- Letting a Settlement show its participating health plans — scheduled below in [Settlement Health Plan Junction](#settlement-health-plan-junction--not-started). See `rawlings-demo/docs/architecture.md` §4.7 for the full design.
-- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1 done, R.2/R.3 remain). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
+- Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress) (V.1–V.6 done, V.7 remains). See `rawlings-demo/docs/architecture.md` §4 for the full design.
+- Letting a Settlement show its participating health plans — scheduled below in [Settlement Health Plan Junction](#settlement-health-plan-junction--in-progress) (object + data done, related list placement remains). See `rawlings-demo/docs/architecture.md` §4.7 for the full design.
+- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1/R.2 done, R.3 remains). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
 - Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--not-started). See `rawlings-demo/docs/architecture.md` §4.8 for why.
 - Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--not-started). See `rawlings-demo/docs/architecture.md` §4.9 for why.
-- Making the escalation reason text specific instead of generic — a small edit to the already-built Flow, scheduled below in [Escalation Reason Text Update](#escalation-reason-text-update--not-started).
+- ~~Making the escalation reason text specific instead of generic~~ — **done**, see [Escalation Reason Text Update](#escalation-reason-text-update--done).
+
+---
+
+## Continue Here (as of 2026-07-26)
+
+Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — five short tasks, then the V.7 dry run:
+
+1. **Finish Task H.1 (5 min):** Setup → Object Manager → Settlement → Lightning Record Pages → default page → drag a Related List component → select "Settlement Health Plans" → Save → Activate. The object and 3 junction records already exist, so this should show 3 rows immediately.
+2. **Task P.1 — build the "Liens Ready to Respond" report (20 min):** Reports tab → New Report → Report Type `Liens` → Filters: Settlement = live settlement, Stage = Coverage Confirmed → Columns: Claimant Name, Claimant ID, Health Plan, Recoverable Amount, Response Deadline → Save as `Liens Ready to Respond`.
+3. **Task P.2 — verify Export (10 min):** Run that report → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly.
+4. **Task D.1 — add "Liens Near Deadline" related list (30 min):** Settlement Lightning Record Page → drag a Related List - Single component → filter `Deadline_Status__c` in (Yellow, Red) AND `Stage__c` not in (Closed, Collected) → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
+5. **Task R.3 — restage browser/desktop (15 min):** Tab 1 = live settlement + Escalation Queue tab; bookmark/tab ready for the volume settlement. Confirm Summary tiles + Bulk Advance are visible without searching.
+
+Then **Task V.7 — full live dry run** (see [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress)) is the last thing standing between here and a rehearsed demo. Full detail for each numbered task above is in its own section further down this document — this block is just the fast-resume summary.
 
 ---
 
@@ -684,7 +698,7 @@ sf org display --target-org rawlings-demo
 
 ---
 
-## Bulk Actions & Volume Demo — Not Started
+## Bulk Actions & Volume Demo — In Progress
 
 **Goal:** Prove the platform handles a real book of business, not just a 15-row CSV — live, for an audience of partners unfamiliar with CRM plus one technical consultant. Full design: `rawlings-demo/docs/architecture.md` §4.
 
@@ -766,7 +780,7 @@ On the volume settlement: Summary tiles reflect ~1,000 total liens with the expe
 
 ---
 
-## Settlement Health Plan Junction — Not Started
+## Settlement Health Plan Junction — In Progress
 
 **Goal:** Let the Settlement record show its participating health plans directly, so the Settlement Configuration beat of the demo can actually demonstrate that — right now health plan only exists per-Lien. Decorative only: no Apex, no validation rule, no test class. Full design: `rawlings-demo/docs/architecture.md` §4.7.
 
@@ -902,7 +916,7 @@ Run the report → Export → Details Only → Format `.xlsx` (or `.csv`) → sa
 
 ---
 
-## Escalation Reason Text Update — Not Started
+## Escalation Reason Text Update — Done
 
 **Goal:** Replace the generic, hardcoded escalation reason with a specific, feasible one so Beat 5 of the demo has an actual story instead of a label. Right now every escalated lien gets the same text, regardless of cause — it doesn't reflect any real business reason. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`.
 
@@ -910,7 +924,7 @@ This is a small edit to an already-built, already-activated Flow (`Lien Automati
 
 ---
 
-**Task E.1 — Update the Escalation Path's Escalation Reason text**
+**Task E.1 — Update the Escalation Path's Escalation Reason text** ✅ Done
 *Tool: Flow Builder | Time: 10–15 min*
 
 1. Setup → Flows → `Lien Automation on Create` → Edit (this deactivates it while editing — reactivate when done).
