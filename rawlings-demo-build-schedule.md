@@ -20,14 +20,14 @@ Everything from Task M.1 through Th.5 is built and demoed — the full intake-th
 
 ---
 
-## Continue Here (as of 2026-07-26)
+## Continue Here (as of 2026-07-27)
 
-Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records + related list placement). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — four short tasks, then the V.7 dry run:
+Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records + related list placement, the Response report, the Liens Near Deadline list view). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — three short tasks, then the V.7 dry run:
 
 1. ~~Finish Task H.1~~ — **done** (related list placed and verified, 3 rows).
 2. ~~Task P.1 — build the "Liens Ready to Respond" report~~ — **done** (deployed as metadata, verified via REST API — see Response Report section for details).
-3. **Task P.2 — verify Export (10 min):** Reports tab → open `Liens Ready to Respond` → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly. (Run a live Import Claimants first if you want non-zero rows to look at — the report is currently correct-but-empty since the live settlement has no Coverage Confirmed liens at rest.)
-4. **Finish Task D.1 (15 min):** the filter already exists as a List View (`Liens Near Deadline`, deployed and verified) — Settlement Lightning Record Page → drag a Related List - Single component → point it at the Lien related list, filtered by the `Liens Near Deadline` List View → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
+3. **→ NEXT: Finish Task D.1 (15 min):** the filter already exists as a List View (`Liens Near Deadline`, deployed and verified) — Settlement Lightning Record Page → drag a Related List - Single component → point it at the Lien related list, filtered by the `Liens Near Deadline` List View → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
+4. **Task P.2 — verify Export (10 min):** Reports tab → open `Liens Ready to Respond` → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly. (Run a live Import Claimants first if you want non-zero rows to look at — the report is currently correct-but-empty since the live settlement has no Coverage Confirmed liens at rest.)
 5. **Task R.3 — restage browser/desktop (15 min):** Tab 1 = live settlement + Escalation Queue tab; bookmark/tab ready for the volume settlement. Confirm Summary tiles + Bulk Advance are visible without searching.
 
 Then **Task V.7 — full live dry run** (see [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress)) is the last thing standing between here and a rehearsed demo. Full detail for each numbered task above is in its own section further down this document — this block is just the fast-resume summary.
