@@ -1,21 +1,26 @@
 public with sharing class ResponseFileWriter {
 
+    public class GenerateResult {
+        @AuraEnabled public String filename;
+        @AuraEnabled public List<ResponseRow> rows;
+    }
+
+    public class ResponseRow {
+        @AuraEnabled public String claimantId;
+        @AuraEnabled public String claimantName;
+        @AuraEnabled public String healthPlan;
+        @AuraEnabled public Decimal recoverableAmount;
+        @AuraEnabled public Date responseDeadline;
+    }
+
     @AuraEnabled
-    public static void generateResponseFile(Id settlementId) {
+    public static GenerateResult generateResponseFile(Id settlementId) {
         if (settlementId == null) {
             AuraHandledException ex = new AuraHandledException('No settlement specified.');
             ex.setMessage('No settlement specified.');
             throw ex;
         }
-        writeFileAsync(String.valueOf(settlementId));
-    }
 
-    // @Future(callout=true) is used for demo simplicity so the LWC gets an
-    // immediate success response while the callout completes in the background.
-    // Production would replace this with a Platform Event or Queueable job with
-    // proper error handling, retry logic, and job tracking.
-    @Future(callout=true)
-    private static void writeFileAsync(String settlementId) {
         List<Lien__c> liens = [
             SELECT Claimant_ID__c, Claimant_Name__c, Health_Plan__r.Name,
                    Recoverable_Amount__c, Stage__c, Response_Deadline__c
@@ -25,7 +30,9 @@ public with sharing class ResponseFileWriter {
         ];
 
         if (liens.isEmpty()) {
-            return;
+            AuraHandledException ex = new AuraHandledException('No Coverage Confirmed liens found for this settlement.');
+            ex.setMessage('No Coverage Confirmed liens found for this settlement.');
+            throw ex;
         }
 
         String csv = 'Claimant_ID,Claimant_Name,Health_Plan,Recoverable_Amount,Stage,Response_Deadline\n';
@@ -42,14 +49,52 @@ public with sharing class ResponseFileWriter {
 
         String filename = 'response_' + Datetime.now().format('yyyyMMdd_HHmmss') + '.csv';
 
-        HttpRequest req = new HttpRequest();
-        req.setEndpoint('callout:LocalSFTPDemo');
-        req.setMethod('POST');
-        req.setHeader('Content-Type', 'text/csv');
-        req.setHeader('X-Filename', filename);
-        req.setBody(csv);
+        ContentVersion cv = new ContentVersion();
+        cv.Title = filename;
+        cv.PathOnClient = filename;
+        cv.VersionData = Blob.valueOf(csv);
+        insert cv;
 
-        HttpResponse res = new Http().send(req);
-        System.debug('ResponseFileWriter callout status: ' + res.getStatusCode());
+        Id contentDocumentId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :cv.Id].ContentDocumentId;
+
+        ContentDocumentLink link = new ContentDocumentLink();
+        link.ContentDocumentId = contentDocumentId;
+        link.LinkedEntityId = settlementId;
+        link.ShareType = 'V';
+        link.Visibility = 'AllUsers';
+        insert link;
+
+        Set<Id> lienIds = new Map<Id, Lien__c>(liens).keySet();
+
+        for (Lien__c lien : liens) {
+            lien.Stage__c = 'Response Submitted';
+        }
+        update liens;
+
+        List<Response__c> responses = [
+            SELECT Status__c, Sent_Date__c
+            FROM Response__c
+            WHERE Lien__c IN :lienIds
+        ];
+        for (Response__c response : responses) {
+            response.Status__c = 'Sent';
+            response.Sent_Date__c = Date.today();
+        }
+        update responses;
+
+        GenerateResult result = new GenerateResult();
+        result.filename = filename;
+        result.rows = new List<ResponseRow>();
+        for (Lien__c lien : liens) {
+            ResponseRow row = new ResponseRow();
+            row.claimantId = lien.Claimant_ID__c;
+            row.claimantName = lien.Claimant_Name__c;
+            row.healthPlan = lien.Health_Plan__r?.Name;
+            row.recoverableAmount = lien.Recoverable_Amount__c;
+            row.responseDeadline = lien.Response_Deadline__c;
+            result.rows.add(row);
+        }
+
+        return result;
     }
 }

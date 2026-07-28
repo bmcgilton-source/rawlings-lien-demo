@@ -133,6 +133,11 @@
         <readable>true</readable>
         <editable>true</editable>
     </fieldPermissions>
+    <fieldPermissions>
+        <field>Response__c.Sent_Date__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
 
     <tabSettings>
         <tab>Settlement__c</tab>

@@ -5,13 +5,24 @@ import generateResponseFile from '@salesforce/apex/ResponseFileWriter.generateRe
 
 const STATE = {
     DEFAULT: 'default',
-    LOADING: 'loading'
+    LOADING: 'loading',
+    RESULTS: 'results'
 };
+
+const COLUMNS = [
+    { label: 'Claimant', fieldName: 'claimantName' },
+    { label: 'Health Plan', fieldName: 'healthPlan' },
+    { label: 'Recoverable Amount', fieldName: 'recoverableAmount', type: 'currency' },
+    { label: 'Response Deadline', fieldName: 'responseDeadline', type: 'date-local' }
+];
 
 export default class GenerateResponseFile extends LightningElement {
     @api recordId;
 
     state = STATE.DEFAULT;
+    columns = COLUMNS;
+    rows = [];
+    filename;
 
     get isDefault() {
         return this.state === STATE.DEFAULT;
@@ -21,7 +32,15 @@ export default class GenerateResponseFile extends LightningElement {
         return this.state === STATE.LOADING;
     }
 
+    get isResults() {
+        return this.state === STATE.RESULTS;
+    }
+
     handleCancel() {
+        this.dispatchEvent(new CloseActionScreenEvent());
+    }
+
+    handleClose() {
         this.dispatchEvent(new CloseActionScreenEvent());
     }
 
@@ -29,16 +48,19 @@ export default class GenerateResponseFile extends LightningElement {
         this.state = STATE.LOADING;
 
         try {
-            await generateResponseFile({ settlementId: this.recordId });
+            const result = await generateResponseFile({ settlementId: this.recordId });
+            this.filename = result.filename;
+            this.rows = result.rows.map((row) => ({ ...row, id: row.claimantId }));
+            this.state = STATE.RESULTS;
             this.dispatchEvent(
                 new ShowToastEvent({
-                    title: 'Response file initiated',
-                    message: 'File will appear in the outbound folder in a few seconds.',
-                    variant: 'success',
-                    mode: 'sticky'
+                    title: 'Response file attached',
+                    message: `"${this.filename}" was added to this Settlement's Files. ${this.rows.length} response(s) marked Sent and moved to Response Submitted.`,
+                    variant: 'success'
                 })
             );
         } catch (error) {
+            this.state = STATE.DEFAULT;
             this.dispatchEvent(
                 new ShowToastEvent({
                     title: 'Error generating response file',
@@ -48,7 +70,5 @@ export default class GenerateResponseFile extends LightningElement {
                 })
             );
         }
-
-        this.dispatchEvent(new CloseActionScreenEvent());
     }
 }

@@ -14,7 +14,21 @@ Questions raised while walking through `demo-script.md`, to resolve before the s
 
 **Correction during review:** the consultant-facing answer originally said this was "the real SFTP callout, just not run live for risk reasons." That overstates it — `ResponseFileWriter.cls` POSTs to a local HTTP server, a stand-in for the exchange, not a literal SFTP client. Per `architecture.md` §8, real delivery to an administrator's SFTP server in production goes through a middleware integration layer (MuleSoft or AWS Transfer Family + Lambda); Salesforce doesn't speak SFTP directly, and that middleware is out of scope for this prototype. So the accurate answer if asked is two-part: real delivery needs middleware not built here, and the local-server stand-in that *was* built isn't run live because it depends on a tunnel and the venue's network for the whole demo.
 
-**Status:** Resolved. `docs/demo-script.md` Beat 6 rewritten; see `architecture.md` §4.8 for the report build item and the note on the built-but-not-demoed SFTP path.
+**Status:** Resolved, then superseded — see the later "`ResponseFileWriter.cls` was unsafe to demonstrate on request" entry below, which moved Beat 6 off this report+folder path entirely in favor of Generate Response File as the primary live mechanism.
+
+---
+
+### `ResponseFileWriter.cls` was unsafe to demonstrate on request
+
+**Raised by:** Brian, while reconsidering whether the "Generate Response File" quick action should stay on the Settlement page.
+
+**Context:** Even though Beat 6's live path was already moved to the report export (see previous entry), the original `ResponseFileWriter.cls` → local Python server → ngrok callout was left in place, built and deployed, on the theory that it stayed "demonstrable on request" if the consultant wanted to see the actual mechanism (`architecture.md` §4.8, prior wording). On closer look that framing didn't hold up: the `generateResponseFile` LWC fires its success toast the moment the (async) Apex call returns, regardless of whether the HTTP callout to the local server actually succeeded. If the ngrok tunnel had rotated URLs (free-tier ngrok URLs change per session and the Named Credential was hardcoded to one) or the local server wasn't running, clicking the action live would show a success toast and silently produce nothing — a worse failure mode than not having the action at all, since nobody would know it failed until someone went looking for the file.
+
+**Decision:** Reworked `ResponseFileWriter.cls` to attach the CSV directly to the Settlement record as a Salesforce File (`ContentVersion` + `ContentDocumentLink`) instead of POSTing it anywhere. This removes the external dependency entirely — no tunnel, no local server, no Named Credential, no per-session URL to keep in sync. A Files related list was added to the Settlement Lightning Record Page so the result is visible in one click. The `LocalSFTPDemo` Named Credential and `demo/demo_server.py` were deleted since nothing references them anymore.
+
+**Follow-up decision:** with the external dependency gone, there's no longer a reason to route the live demo through the report + desktop-folder export at all — the Files related list itself now serves as the empty-to-populated bookend that `outbound/` used to provide. "Generate Response File" is now the **primary** live mechanism for Beat 6, not just a safe-to-demonstrate-on-request fallback. The "Liens Ready to Respond" report (§4.8) stays built and available as a manual/ad-hoc alternative, but it's no longer the scripted path, and verifying its Export into a desktop folder is no longer a build requirement.
+
+**Status:** Resolved. `ResponseFileWriter.cls`, `generateResponseFile` LWC, and `Settlement_Record_Page.flexipage-meta.xml` updated; `architecture.md` §3.6–3.8 and §4.8 and `docs/demo-script.md` Beats 0 and 6 rewritten to match.
 
 ---
 

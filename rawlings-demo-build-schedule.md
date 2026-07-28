@@ -11,24 +11,27 @@
 Everything from Task M.1 through Th.5 is built and demoed — the full intake-through-response slice with SFTP simulation, escalation routing, deadline monitoring, audit history, and the full-lifecycle Path chevron. See `rawlings-demo/docs/architecture.md` §3 (Built Components) for the current reference — that document is now the source of truth for what's built, and this schedule is kept as a record of how it was built.
 
 **Remaining work:**
-- Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress) (V.1–V.6 done, V.7 remains). See `rawlings-demo/docs/architecture.md` §4 for the full design.
+- Proving the platform at volume for a partner + technical-consultant audience — scheduled below in [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress) (V.1–V.6 done, **V.7 remains**). See `rawlings-demo/docs/architecture.md` §4 for the full design.
 - ~~Letting a Settlement show its participating health plans~~ — **done**, see [Settlement Health Plan Junction](#settlement-health-plan-junction--done).
-- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1/R.2 done, R.3 remains). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
-- Replacing the live SFTP-callout demo beat with a lower-risk report export — scheduled below in [Response Report](#response-report--in-progress) (P.1 done, P.2 remains). See `rawlings-demo/docs/architecture.md` §4.8 for why.
-- Letting partners see which liens are near deadline without leaving the Settlement page — scheduled below in [Liens Near Deadline](#liens-near-deadline--in-progress) (List View done, component placement remains). See `rawlings-demo/docs/architecture.md` §4.9 for why.
+- Splitting the live demo settlement from the seeded volume settlement — scheduled below in [Two-Settlement Restructure](#two-settlement-restructure--in-progress) (R.1/R.2 done, **R.3 remains**). See `rawlings-demo/docs/demo-script.md` and `rawlings-demo/docs/demo-script-open-questions.md` for why.
+- ~~Replacing the live SFTP-callout demo beat with a lower-risk report export~~ — **superseded**, see [Response Report](#response-report--done). `ResponseFileWriter.cls`'s native-attach rework (§3.6) made Generate Response File the primary live mechanism instead; the report stays built as an ad-hoc alternative, and verifying its Export into a desktop folder is no longer needed since the demo doesn't write files to a folder at all.
+- ~~Letting partners see which liens are near deadline without leaving the Settlement page~~ — **done**, see [Liens Near Deadline](#liens-near-deadline--done).
 - ~~Making the escalation reason text specific instead of generic~~ — **done**, see [Escalation Reason Text Update](#escalation-reason-text-update--done).
+- Replacing the Static Resource-backed import with a live Screen Flow file upload — **proposed, not started**, see [Claimant Import via Screen Flow](#claimant-import-via-screen-flow--proposed). Optional enhancement; does not block R.3/V.7.
+
+Only two things are left before the demo is rehearsed and ready: **Task R.3** (restage browser/desktop for both settlements) and **Task V.7** (full live dry run).
 
 ---
 
 ## Continue Here (as of 2026-07-27)
 
-Picking up on another machine? Everything CLI/metadata-automatable is done (seed data, the Flow text edit, the junction object + records + related list placement, the Response report, the Liens Near Deadline list view). What's left is all Setup UI / Lightning App Builder / Report Builder clicking — three short tasks, then the V.7 dry run:
+Picking up on another machine? Everything build-related is done — seed data, the Flow text edit, the junction object + records + related list placement, the Response report, the Liens Near Deadline list view **and** its page placement (confirmed live on the volume settlement), and the ResponseFileWriter native-attach rework that makes Generate Response File the primary Beat 6 mechanism. Task P.2 (verifying report Export into a desktop folder) is dropped — the demo no longer writes files to a folder at all. What's left is two tasks, no more building:
 
 1. ~~Finish Task H.1~~ — **done** (related list placed and verified, 3 rows).
 2. ~~Task P.1 — build the "Liens Ready to Respond" report~~ — **done** (deployed as metadata, verified via REST API — see Response Report section for details).
-3. **→ NEXT: Finish Task D.1 (15 min):** the filter already exists as a List View (`Liens Near Deadline`, deployed and verified) — Settlement Lightning Record Page → drag a Related List - Single component → point it at the Lien related list, filtered by the `Liens Near Deadline` List View → sort `Days_Remaining__c` ascending → columns: Claimant Name, Stage, Days Remaining, Deadline Status → label it "Liens Near Deadline" → place near the Summary tiles.
-4. **Task P.2 — verify Export (10 min):** Reports tab → open `Liens Ready to Respond` → Export → Details Only → `.xlsx`/`.csv` → save into `~/Desktop/sftp-demo/outbound/` → confirm it opens cleanly. (Run a live Import Claimants first if you want non-zero rows to look at — the report is currently correct-but-empty since the live settlement has no Coverage Confirmed liens at rest.)
-5. **Task R.3 — restage browser/desktop (15 min):** Tab 1 = live settlement + Escalation Queue tab; bookmark/tab ready for the volume settlement. Confirm Summary tiles + Bulk Advance are visible without searching.
+3. ~~Finish Task D.1~~ — **done** (Related List - Single component placed on the Settlement page, filtered/sorted per spec, confirmed live on the volume settlement).
+4. ~~Task P.2 — verify Export~~ — **dropped**, superseded by Generate Response File becoming the primary live mechanism (see Response Report section).
+5. **→ NEXT: Task R.3 — restage browser/desktop (15 min):** Tab 1 = live settlement + Escalation Queue tab; bookmark/tab ready for the volume settlement. Confirm Summary tiles + Bulk Advance are visible without searching.
 
 Then **Task V.7 — full live dry run** (see [Bulk Actions & Volume Demo](#bulk-actions--volume-demo--in-progress)) is the last thing standing between here and a rehearsed demo. Full detail for each numbered task above is in its own section further down this document — this block is just the fast-resume summary.
 
@@ -853,11 +856,11 @@ Update the staging from Task Th.2: Tab 1 = live settlement (Lien list visible, e
 
 ---
 
-## Response Report — In Progress
+## Response Report — Done
 
-**Goal:** Replace the live SFTP-callout demo beat (Generate Response File → `ResponseFileWriter.cls` → Python server → ngrok) with a native Salesforce report + Export, removing the only external, network-dependent moving part in the whole demo. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`. Full design: `rawlings-demo/docs/architecture.md` §4.8.
+**Original goal:** Replace the live SFTP-callout demo beat (Generate Response File → `ResponseFileWriter.cls` → Python server → ngrok) with a native Salesforce report + Export, removing the only external, network-dependent moving part in the whole demo. Full reasoning: `rawlings-demo/docs/demo-script-open-questions.md`. Full design: `rawlings-demo/docs/architecture.md` §4.8.
 
-`ResponseFileWriter.cls`, the `generateResponseFile` LWC, and the Python server are **not being removed** — they stay built and functional, just no longer part of the live script.
+**Superseded:** `ResponseFileWriter.cls` was later reworked to attach the CSV directly to the Settlement record as a Salesforce File instead of POSTing it through the Python server/ngrok — which removed the external dependency at its source, rather than routing around it with a report. Generate Response File is now the **primary** live mechanism for Beat 6; the report stays built as a manual/ad-hoc alternative, not the scripted path. Task P.2 (verifying Export into a desktop folder) is dropped accordingly — the demo doesn't write files to a folder at all anymore.
 
 ---
 
@@ -877,26 +880,24 @@ Reports tab → New Report → Report Type: `Liens` (Salesforce's auto-generated
 
 ---
 
-**Task P.2 — Verify Export end-to-end into the outbound folder**
+**Task P.2 — Verify Export end-to-end into the outbound folder** — **Dropped**
 *Tool: Salesforce + Desktop | Time: 10–15 min*
 
-Run the report → Export → Details Only → Format `.xlsx` (or `.csv`) → save directly into `~/Desktop/sftp-demo/outbound/`. Open the saved file and confirm the columns are readable.
-
-✅ Done when: the exported file lands in `outbound/` and opens cleanly, matching Beat 6 of `docs/demo-script.md`.
+No longer needed: Beat 6 now runs live through Generate Response File (attaches the CSV directly to the Settlement record), not the report + Export + desktop-folder path. The report stays available for a manual/ad-hoc pull if ever needed, but nothing in the scripted demo depends on exporting it to a folder.
 
 ---
 
-**Response Report check:** Report built and Export verified into `outbound/`. Rehearse Beat 6 with this path instead of Generate Response File; ngrok and the Python server no longer need to be running for the live demo.
+**Response Report check:** `ResponseFileWriter.cls` reworked to attach natively; Generate Response File is the live Beat 6 mechanism. ngrok and the Python server no longer need to be running for the live demo.
 
 ---
 
-## Liens Near Deadline — In Progress
+## Liens Near Deadline — Done
 
 **Goal:** Let a partner see which liens are actually at risk on a deadline without leaving the Settlement page — right now `Deadline_Status__c` just computes a color; nothing surfaces it to anyone unless they're already looking at the right row. Declarative only, no Apex, no LWC, no test class. Full design: `rawlings-demo/docs/architecture.md` §4.9.
 
 ---
 
-**Task D.1 — Add the "Liens Near Deadline" dynamic related list**
+**Task D.1 — Add the "Liens Near Deadline" dynamic related list** ✅ Done
 *Tool: Salesforce Setup UI / App Builder | Time: 30–45 min*
 
 1. Setup → Object Manager → Settlement → Lightning Record Pages → default page → drag a **Related List - Single** component onto the page.
@@ -912,11 +913,13 @@ Run the report → Export → Details Only → Format `.xlsx` (or `.csv`) → sa
 
 ✅ Done when: on both settlements, the component shows only Yellow/Red, non-Closed/Collected liens, soonest deadline on top — verified against Helen Vasquez on the volume settlement and, if time allows, a manually-adjusted test record on the live settlement.
 
-**Update (2026-07-26):** Step 2's filter built and deployed via Claude Code as a `Lien__c` List View instead of hand-configuring criteria in App Builder — `Liens_Near_Deadline.listView-meta.xml` (`Deadline_Status__c != 'Green'` AND `Stage__c != 'Closed'` AND `Stage__c != 'Collected'`; `Deadline_Status__c` only ever resolves to Green/Yellow/Red per its formula, so `!= 'Green'` is equivalent to the spec's `in (Yellow, Red)`). Verified via the List View REST API: sample rows returned only Yellow/Red statuses and no Closed/Collected stages, and a SOQL count confirms 381 records org-wide currently match. **Steps 1, 3, and 4 (placing a Related List - Single component on the Settlement page, pointing it at this List View as its filter, setting the sort to `Days_Remaining__c` ascending, and positioning it near the Summary tiles) still need to be done manually** in Lightning App Builder — same reasoning as Task H.1's related list: not attempted as a blind flexipage edit.
+**Update (2026-07-26):** Step 2's filter built and deployed via Claude Code as a `Lien__c` List View instead of hand-configuring criteria in App Builder — `Liens_Near_Deadline.listView-meta.xml` (`Deadline_Status__c != 'Green'` AND `Stage__c != 'Closed'` AND `Stage__c != 'Collected'`; `Deadline_Status__c` only ever resolves to Green/Yellow/Red per its formula, so `!= 'Green'` is equivalent to the spec's `in (Yellow, Red)`). Verified via the List View REST API: sample rows returned only Yellow/Red statuses and no Closed/Collected stages, and a SOQL count confirms 381 records org-wide currently match.
+
+**Update (2026-07-27):** Steps 1, 3, and 4 completed in Lightning App Builder — the "Liens Near Deadline" Related List - Single component is live on the Settlement record page, confirmed showing 10+ Red-status rows sorted soonest-first on the volume settlement (`Talc Powder Mass Tort 2023`).
 
 ---
 
-**Liens Near Deadline check:** Component built and verified on both settlements. Update Beat 8 of `docs/demo-script.md` to point at it directly.
+**Liens Near Deadline check:** Component built and verified on both settlements. Beat 8 of `docs/demo-script.md` points at it directly.
 
 ---
 
@@ -948,3 +951,66 @@ This is a small edit to an already-built, already-activated Flow (`Lien Automati
 ---
 
 **Escalation Reason Text Update check:** Flow updated and reactivated, verified against a fresh test import. Beat 5 of `docs/demo-script.md` already rewritten to match.
+
+---
+
+## Claimant Import via Screen Flow — Proposed
+
+**Goal:** Beat 0's talk track claims the presenter "uploaded [the file] myself, ahead of time" — right now that's narrated, not real: `Import Claimants` reads a pre-staged `SampleClaimants` Static Resource, and nothing is actually uploaded live. Replace it with a Screen Flow the presenter drives live, using a real File Upload screen component. Full design: `rawlings-demo/docs/architecture.md` §4.10.
+
+This is a new, optional enhancement — not part of the R.3/V.7 path already scheduled to finish rehearsal. Prioritize separately; doesn't block the demo being rehearsal-ready.
+
+---
+
+**Task F.1 — Extract shared import logic into `ClaimantImportService.cls`**
+*Tool: 🤖 Claude Code / IDE | Time: 30–45 min*
+
+Move the CSV-parsing/Lien-insert/count logic out of `ClaimantImportController.importClaimants` into `ClaimantImportService.importFromCsv(Id settlementId, Blob csvBody)`. `ClaimantImportController.importClaimants` becomes a thin wrapper: read the Static Resource, call the service. No behavior change for the existing LWC path.
+
+✅ Done when: `ClaimantImportControllerTest` passes unmodified (or with only method-name updates), confirming the refactor didn't change behavior.
+
+---
+
+**Task F.2 — Build `ClaimantFileImportInvocable.cls` + test**
+*Tool: 🤖 Claude Code / IDE | Time: 45–60 min*
+
+`@InvocableMethod` taking `settlementId` + `contentVersionId`, reading `ContentVersion.VersionData`, calling `ClaimantImportService.importFromCsv`, returning total/automated/escalated counts. Test inserts a `ContentVersion` with the same sample CSV body (or a small fixture) and asserts counts + created `Lien__c` records, mirroring `ClaimantImportControllerTest`'s assertions.
+
+✅ Done when: test class passes with coverage on both the confirmed and escalated branches.
+
+---
+
+**Task F.3 — Build the Screen Flow `Import Claimant File`**
+*Tool: 🏗️ Flow Builder | Time: 1–1.5 hours*
+
+Screen Flow, Settlement record context:
+1. Screen — File Upload component, related record = `{!recordId}` (so the upload lands on the Settlement's Files related list automatically).
+2. Get Records — latest `ContentVersion` for the uploaded document.
+3. Apex Action — `ClaimantFileImportInvocable`.
+4. Screen — Display Text showing total/automated/escalated, same wording as today's toast.
+
+⚠️ **Risk:** the File Upload component's output variable (single Id vs. collection) varies by API version — check in Flow Builder before building the Get Records filter.
+
+✅ Done when: running the Flow against a real file upload creates the same Lien mix (automated + escalated) as the existing Static Resource path.
+
+---
+
+**Task F.4 — Add as a Quick Action, decide action-bar placement**
+*Tool: Salesforce Setup UI | Time: 20–30 min*
+
+New Flow-type Quick Action on Settlement, `Import_Claimant_File`. Decide: swap it into the primary action-bar slot currently held by `Import Claimants`, keeping the old LWC action available but demoted (same precedent as the Report staying as a manual/ad-hoc alternative to `Generate Response File`, §4.8) — don't delete the Static Resource path.
+
+✅ Done when: Settlement action bar shows the new Flow action in the primary position; the original `Import Claimants` action still exists and still works if clicked.
+
+---
+
+**Task F.5 — Update demo script and rehearse**
+*Tool: Text editor + Salesforce | Time: 20–30 min*
+
+Update `docs/demo-script.md` Beat 0/Beat 2: the "I uploaded it myself" line now describes something the presenter actually does live, not something staged beforehand. Save `SampleClaimants.csv` somewhere accessible on the presenter's machine (desktop, or reuse the existing `staticresources` file directly) for the live pick. Rehearse the upload once as part of the next full dry run.
+
+✅ Done when: Beat 0/2 run live end-to-end with the real upload, same automated/escalated split narrated correctly.
+
+---
+
+**Claimant Import via Screen Flow check:** Screen Flow built, verified against the same known-good CSV, old path kept as fallback. Fold into the next full dry run once R.3/V.7 are done.

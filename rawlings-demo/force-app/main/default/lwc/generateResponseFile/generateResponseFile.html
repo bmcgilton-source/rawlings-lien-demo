@@ -3,8 +3,9 @@
         <div class="slds-p-around_medium">
             <h2 class="slds-text-heading_small slds-m-bottom_small">Generate Response File</h2>
             <p class="slds-m-bottom_medium">
-                Builds the response CSV for all Coverage Confirmed liens on this settlement and
-                writes it to the outbound folder. The file will appear within a few seconds.
+                Builds the response CSV for all Coverage Confirmed liens on this settlement,
+                attaches it to this Settlement record as a File, marks each response Sent,
+                and moves those liens to Response Submitted.
             </p>
             <div class="slds-align_absolute-center">
                 <lightning-button
@@ -25,6 +26,25 @@
     <template if:true={isLoading}>
         <div class="slds-p-around_medium slds-align_absolute-center" style="min-height: 6rem;">
             <lightning-spinner alternative-text="Generating..." size="medium"></lightning-spinner>
+        </div>
+    </template>
+
+    <template if:true={isResults}>
+        <div class="slds-p-around_medium">
+            <h2 class="slds-text-heading_small slds-m-bottom_small">{filename}</h2>
+            <lightning-datatable
+                key-field="id"
+                data={rows}
+                columns={columns}
+                hide-checkbox-column
+            ></lightning-datatable>
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <lightning-button
+                    variant="brand"
+                    label="Close"
+                    onclick={handleClose}
+                ></lightning-button>
+            </div>
         </div>
     </template>
 </template>
