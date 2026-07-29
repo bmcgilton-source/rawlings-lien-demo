@@ -57,7 +57,7 @@ Per `architecture.md` §4.5, keep these visibly separate:
 #### Beat 0 — Open with the raw file (20s)
 **Page shown:** A local file browser showing `ClaimantImportDemo.csv` on the desktop; then Settlement A record, Files related list.
 **Action:** Point at the file sitting on the desktop. Switch to Settlement A, show the Files related list is empty.
-**Talk track:** "We’re going to follow one claimant from the administrator’s file through collection. We’ll stay with one record so every decision and artifact remains visible. At the end, I’ll show how the same transitions operate across a Settlement at volume.
+**Talk track:** "Phase 1 is intentionally focused on carrying a single lien from intake through collection. So today, we’re going to follow one claimant from the administrator’s file all the way through that lifecycle. Staying with one record keeps every decision, exception, and artifact visible. At the end, I’ll show how the same transitions operate across a Settlement at volume.
 
 "This is the administrator’s source file. I’ll upload it manually so you can see the point where Salesforce takes over. In Phase 1, SFTP replaces this manual step; the workflow inside Salesforce remains the same." *(switch to Settlement A)* "This Settlement has not produced an outbound file yet. We’ll come back here after the claims have been worked and close the exchange loop."
 
@@ -80,9 +80,9 @@ Per `architecture.md` §4.5, keep these visibly separate:
 #### Beat 3 — Claim Evaluation, in aggregate (2m)
 **Page shown:** Settlement A record — Lien Summary tiles, then the Escalated Liens related list (same page, no tab switch needed).
 **Action:** Point to the Pipeline Stage tile (Coverage Confirmed population), then scroll down to Escalated Liens.
-**Talk track:** "The accepted rows are now valid Liens. Salesforce has already separated them into two operational paths." *(point to Coverage Confirmed)* "Conclusive coverage and amount results continue automatically." *(scroll to Escalated Liens)* "Inconclusive results stop here and become assigned work with a reason and due date.
+**Talk track:** "The accepted rows are now valid Liens, and Salesforce is already moving every one of them forward — no one is sitting here triaging a queue." *(point to Coverage Confirmed)* "This is the automatic path, and it's the majority: coverage confirmed, amount confirmed, straight through without a person touching it." *(scroll to Escalated Liens)* "Only the ones the system genuinely can't resolve land here — and even then, nothing sits idle. The moment a result is inconclusive, it's converted into owned work with a reason and a due date, so a human is pulled in only at the point where a human is actually required.
 
-"That distinction matters: the four intake rejections were bad source data and never became Liens. These three passed intake but require business review. For the prototype, Liability and Damages results are supplied with the demo data. In production, dedicated services provide those results while Salesforce records the outcome, advances the workflow, and routes exceptions."
+"That distinction matters: the four intake rejections were bad source data and never became Liens at all — the system caught those on its own. These three did become Liens, but the evaluation itself came back inconclusive, which is the one case where we deliberately hand off to a person. For the prototype, Liability and Damages results are supplied with the demo data. In production, dedicated services supply those same results, and Salesforce keeps doing what it just did here: resolve automatically wherever it can, and escalate only the genuine exceptions."
 
 #### Beat 4 — The escalation path, one record (1.5m)
 **Page shown:** Open one of the escalated liens flagged in Beat 3; then its assigned Task.

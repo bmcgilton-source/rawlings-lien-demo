@@ -70,8 +70,11 @@ List<String> redistributionStages = new List<String>{
 };
 List<String> injuryCategories = new List<String>{ 'Hip Implant', 'Hernia Mesh' };
 
-Integer totalCount = 1000;
-Integer redistributeCount = 150; // last 150 of the 1000 move off Coverage Confirmed post-insert
+// Reduced from 1000/150 to fit this dev org's 5MB data storage limit (Settlement B's liens +
+// cascade Response__c records were consuming ~4MB alone). Red/Yellow counts below stay fixed
+// so Beat 9's near-deadline list view still reads the same.
+Integer totalCount = 400;
+Integer redistributeCount = 60; // last 60 of the 400 move off Coverage Confirmed post-insert
 
 List<Lien__c> toInsert = new List<Lien__c>();
 List<String> plannedStage = new List<String>(); // parallel to toInsert; 'Coverage Confirmed' or a redistribution target
