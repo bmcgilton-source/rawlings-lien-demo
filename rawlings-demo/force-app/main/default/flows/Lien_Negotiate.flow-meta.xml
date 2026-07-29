@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+
+    <assignments>
+        <name>Set_Lien_Negotiation_Fields</name>
+        <label>Set Lien Negotiation Fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Administrator_Position__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Administrator_Position</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Agreed_Amount__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Agreed_Amount</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Negotiation_Reason__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Negotiation_Reason</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Stage__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Agreed</stringValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_Lien_Negotiation</targetReference>
+        </connector>
+    </assignments>
+
+    <decisions>
+        <name>Decision_Eligible_For_Negotiation</name>
+        <label>Ready for Negotiation?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Screen_Not_Eligible</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Not Eligible</defaultConnectorLabel>
+        <rules>
+            <name>Eligible</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Lien.Stage__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Response Submitted</stringValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>Get_Lien.Recoverable_Amount__c</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>0.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Screen_Overview</targetReference>
+            </connector>
+            <label>Eligible</label>
+        </rules>
+    </decisions>
+
+    <environments>Default</environments>
+
+    <interviewLabel>Negotiate {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Negotiate</label>
+
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+
+    <recordLookups>
+        <name>Get_Lien</name>
+        <label>Get Lien</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Get_Settlement</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Lien__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Settlement</name>
+        <label>Get Settlement</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Decision_Eligible_For_Negotiation</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Get_Lien.Settlement__c</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Settlement__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <recordUpdates>
+        <name>Update_Lien_Negotiation</name>
+        <label>Update Lien - Negotiation</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Screen_Negotiation_Complete</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <inputReference>Get_Lien</inputReference>
+    </recordUpdates>
+
+    <screens>
+        <name>Screen_Error</name>
+        <label>Something Went Wrong</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Error_Text</name>
+            <fieldText>&lt;p&gt;This lien could not be updated: {!$Flow.FaultMessage}&lt;/p&gt;&lt;p&gt;Close this window and try again. No changes past the last confirmed step were saved.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Not_Eligible</name>
+        <label>Not Eligible</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Not_Eligible_Text</name>
+            <fieldText>&lt;p&gt;This lien is not ready for negotiation. It must be at Response Submitted with a positive recoverable amount; it is currently at {!Get_Lien.Stage__c}.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Overview</name>
+        <label>Lien Overview</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Screen_Negotiation</targetReference>
+        </connector>
+        <fields>
+            <name>Overview_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Claimant:&lt;/strong&gt; {!Get_Lien.Claimant_Name__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Settlement:&lt;/strong&gt; {!Get_Settlement.Name}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Current Stage:&lt;/strong&gt; {!Get_Lien.Stage__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Asserted/Recoverable Amount:&lt;/strong&gt; {!Get_Lien.Recoverable_Amount__c}&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Negotiation</name>
+        <label>Negotiation</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>true</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Set_Lien_Negotiation_Fields</targetReference>
+        </connector>
+        <fields>
+            <name>Recoverable_Amount_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Recoverable Amount:&lt;/strong&gt; {!Get_Lien.Recoverable_Amount__c}&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>Administrator_Position</name>
+            <dataType>Currency</dataType>
+            <fieldText>Administrator Position</fieldText>
+            <fieldType>InputField</fieldType>
+            <isRequired>true</isRequired>
+            <validationRule>
+                <formulaExpression>{!Administrator_Position} &gt;= 0</formulaExpression>
+                <errorMessage>Administrator Position cannot be negative.</errorMessage>
+            </validationRule>
+        </fields>
+        <fields>
+            <name>Agreed_Amount</name>
+            <dataType>Currency</dataType>
+            <fieldText>Agreed Amount</fieldText>
+            <fieldType>InputField</fieldType>
+            <isRequired>true</isRequired>
+            <validationRule>
+                <formulaExpression>AND({!Agreed_Amount} &gt;= 0, {!Agreed_Amount} &lt;= {!Get_Lien.Recoverable_Amount__c})</formulaExpression>
+                <errorMessage>Agreed amount must be between 0 and the asserted/recoverable amount.</errorMessage>
+            </validationRule>
+        </fields>
+        <fields>
+            <name>Negotiation_Reason</name>
+            <dataType>String</dataType>
+            <fieldText>Negotiation Reason</fieldText>
+            <fieldType>LargeTextArea</fieldType>
+            <isRequired>true</isRequired>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Negotiation_Complete</name>
+        <label>Negotiation Recorded</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Negotiation_Complete_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Administrator Position:&lt;/strong&gt; {!Administrator_Position}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Agreed Amount:&lt;/strong&gt; {!Agreed_Amount}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Stage:&lt;/strong&gt; Agreed&lt;/p&gt;&lt;p&gt;Record the recovery and remittance once the administrator's payment actually arrives.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Lien</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+</Flow>

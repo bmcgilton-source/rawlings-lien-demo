@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+
+    <assignments>
+        <name>Set_Lien_Disbursement_Fields</name>
+        <label>Set Lien Disbursement Fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Health_Plan_Allocation__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Health_Plan_Allocation</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Rawlings_Allocation__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Rawlings_Allocation</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Disbursement_Status__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Approved</stringValue>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Stage__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Closed</stringValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_Lien_Disbursement</targetReference>
+        </connector>
+    </assignments>
+
+    <decisions>
+        <name>Decision_Eligible_For_Disbursement</name>
+        <label>Ready for Disbursement?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Screen_Not_Eligible</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Not Eligible</defaultConnectorLabel>
+        <rules>
+            <name>Eligible</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Lien.Stage__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Collected</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Screen_Disbursement</targetReference>
+            </connector>
+            <label>Eligible</label>
+        </rules>
+    </decisions>
+
+    <environments>Default</environments>
+
+    <interviewLabel>Approve Disbursement {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Approve Disbursement</label>
+
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+
+    <recordLookups>
+        <name>Get_Lien</name>
+        <label>Get Lien</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Decision_Eligible_For_Disbursement</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Lien__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <recordUpdates>
+        <name>Update_Lien_Disbursement</name>
+        <label>Update Lien - Disbursement</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Screen_Completion</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <inputReference>Get_Lien</inputReference>
+    </recordUpdates>
+
+    <screens>
+        <name>Screen_Error</name>
+        <label>Something Went Wrong</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Error_Text</name>
+            <fieldText>&lt;p&gt;This lien could not be updated: {!$Flow.FaultMessage}&lt;/p&gt;&lt;p&gt;Close this window and try again. No changes past the last confirmed step were saved.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Not_Eligible</name>
+        <label>Not Eligible</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Not_Eligible_Text</name>
+            <fieldText>&lt;p&gt;This lien is not ready for disbursement approval. It must be at Collected; it is currently at {!Get_Lien.Stage__c}.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Disbursement</name>
+        <label>Disbursement</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Set_Lien_Disbursement_Fields</targetReference>
+        </connector>
+        <fields>
+            <name>Remittance_Amount_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Remittance Amount:&lt;/strong&gt; {!Get_Lien.Remittance_Amount__c}&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>Health_Plan_Allocation</name>
+            <dataType>Currency</dataType>
+            <fieldText>Health Plan Allocation</fieldText>
+            <fieldType>InputField</fieldType>
+            <isRequired>true</isRequired>
+            <validationRule>
+                <formulaExpression>{!Health_Plan_Allocation} &gt;= 0</formulaExpression>
+                <errorMessage>Health Plan Allocation cannot be negative.</errorMessage>
+            </validationRule>
+        </fields>
+        <fields>
+            <name>Rawlings_Allocation</name>
+            <dataType>Currency</dataType>
+            <fieldText>Rawlings Allocation</fieldText>
+            <fieldType>InputField</fieldType>
+            <isRequired>true</isRequired>
+            <validationRule>
+                <formulaExpression>AND({!Rawlings_Allocation} &gt;= 0, ({!Health_Plan_Allocation} + {!Rawlings_Allocation}) = {!Get_Lien.Remittance_Amount__c})</formulaExpression>
+                <errorMessage>Health Plan Allocation and Rawlings Allocation must both be non-negative and sum to the Remittance Amount.</errorMessage>
+            </validationRule>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Completion</name>
+        <label>Complete</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Completion_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Claimant:&lt;/strong&gt; {!Get_Lien.Claimant_Name__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Initial Asserted Amount:&lt;/strong&gt; {!Get_Lien.Recoverable_Amount__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Administrator Position:&lt;/strong&gt; {!Get_Lien.Administrator_Position__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Agreed Amount:&lt;/strong&gt; {!Get_Lien.Agreed_Amount__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Remittance Amount:&lt;/strong&gt; {!Get_Lien.Remittance_Amount__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Payment Variance:&lt;/strong&gt; {!Get_Lien.Payment_Variance__c}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Health Plan Allocation:&lt;/strong&gt; {!Health_Plan_Allocation}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Rawlings Allocation:&lt;/strong&gt; {!Rawlings_Allocation}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Final Stage:&lt;/strong&gt; Closed&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Disbursement Status:&lt;/strong&gt; Approved&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Lien</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+</Flow>

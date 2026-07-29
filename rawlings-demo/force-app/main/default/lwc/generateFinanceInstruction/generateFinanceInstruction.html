@@ -1,0 +1,68 @@
+<template>
+    <template if:true={isConfirm}>
+        <div class="slds-p-around_medium">
+            <h2 class="slds-text-heading_small slds-m-bottom_small">
+                <template if:true={claimantName}>{claimantName}</template>
+                <template if:false={claimantName}>Generate Finance Instruction</template>
+            </h2>
+            <p class="slds-m-bottom_medium">
+                Generate and attach the approved Finance instruction for this lien.
+            </p>
+            <div class="slds-align_absolute-center">
+                <lightning-button
+                    variant="neutral"
+                    label="Cancel"
+                    onclick={handleCancel}
+                    class="slds-m-right_small"
+                ></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    label="Generate Instruction"
+                    onclick={handleGenerate}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={isLoading}>
+        <div class="slds-p-around_medium slds-align_absolute-center" style="min-height: 6rem;">
+            <lightning-spinner alternative-text="Generating..." size="medium"></lightning-spinner>
+        </div>
+    </template>
+
+    <template if:true={isSuccess}>
+        <div class="slds-p-around_medium">
+            <h2 class="slds-text-heading_small slds-m-bottom_small">{result.filename}</h2>
+            <dl class="slds-list_horizontal slds-wrap">
+                <dt class="slds-item_label slds-text-color_weak slds-truncate">Agreed Amount</dt>
+                <dd class="slds-item_detail slds-truncate"><lightning-formatted-number value={result.agreedAmount} format-style="currency"></lightning-formatted-number></dd>
+                <dt class="slds-item_label slds-text-color_weak slds-truncate">Remittance Amount</dt>
+                <dd class="slds-item_detail slds-truncate"><lightning-formatted-number value={result.remittanceAmount} format-style="currency"></lightning-formatted-number></dd>
+                <dt class="slds-item_label slds-text-color_weak slds-truncate">Health Plan Allocation</dt>
+                <dd class="slds-item_detail slds-truncate"><lightning-formatted-number value={result.healthPlanAllocation} format-style="currency"></lightning-formatted-number></dd>
+                <dt class="slds-item_label slds-text-color_weak slds-truncate">Rawlings Allocation</dt>
+                <dd class="slds-item_detail slds-truncate"><lightning-formatted-number value={result.rawlingsAllocation} format-style="currency"></lightning-formatted-number></dd>
+            </dl>
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <lightning-button
+                    variant="brand"
+                    label="Done"
+                    onclick={handleClose}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={isError}>
+        <div class="slds-p-around_medium">
+            <div class="slds-text-color_error slds-m-bottom_medium">{errorMessage}</div>
+            <div class="slds-align_absolute-center">
+                <lightning-button
+                    variant="neutral"
+                    label="Close"
+                    onclick={handleClose}
+                ></lightning-button>
+            </div>
+        </div>
+    </template>
+</template>

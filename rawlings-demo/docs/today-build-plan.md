@@ -1,69 +1,55 @@
-# Today’s Build Plan — End-to-End Lien Demo Compromise
+# Today's Build Plan — Bulk-Ready for Mario, Lien-Lifecycle as Stretch
 
-**Date:** July 28, 2026  
-**Available time:** One focused working day  
-**Goal:** Extend the existing, working Salesforce demo just enough to carry one lien credibly from intake through collection and closure.
+**Date:** July 28, 2026
+**Available time:** One focused working day
+**Context:** The first live demo is with Mario. He has not confirmed — and won't before this demo — the single-lien full-lifecycle pivot explored in earlier planning (`questions-for-mario.md`). His demo therefore runs the existing, already-built two-act script in `docs/demo-script.md` unchanged: **Act 1** (one lien, intake through response) then **Act 2** (the same platform at volume — bulk advance, deadline monitoring, the full lifecycle Path). Bulk is the lead story, not an optional 60-second coda.
 
-## Definition of done
+Building out the late-lifecycle single-lien Screen Flow (negotiation → recovery → disbursement → closed) is still worth doing — for a *later* demo — and today's plan gives it real time. But it is explicitly **stretch scope**: it does not replace, delay, or put at risk anything Mario is scheduled to see.
 
-By the end of the day, the presenter can complete this story without leaving Salesforce:
+## Two tiers of "done"
 
-1. Open a configured settlement.
-2. Trigger the existing claimant-file import.
-3. Show automated evaluation and escalation routing.
-4. Open one coverage-confirmed lien.
-5. Generate the initial administrator response file.
-6. Run one guided action covering negotiation, recovery, remittance, and disbursement.
-7. Finish with the lien at `Closed`.
-8. Show the resulting values and field history.
-9. Briefly show deadline monitoring and scale as supporting evidence.
+### Tier 1 — Must complete (Mario's demo depends on this)
 
-The demo must explicitly state that:
+1. Reverify Act 1 end-to-end, specifically the reworked `ResponseFileWriter.cls` native-attach path (committed today, not yet run live).
+2. **Task R.3** — restage the browser/desktop for both settlements.
+3. **Task V.7** — full live dry run of Bulk Advance on the volume settlement, clean twice.
+4. One full combined rehearsal of Act 1 + Act 2 back to back, at presentation pace.
+5. Data reset and environment staged, ready to go.
 
-- The Static Resource is a pre-staged stand-in for inbound SFTP.
-- Outbound files are generated but not transported by SFTP.
-- Liability and Damages results are simulated.
-- The guided late-lifecycle Flow demonstrates workflow orchestration, not completed production recovery or Finance integrations.
+### Tier 2 — Stretch (only after Tier 1 is done and gated)
+
+6. Add the late-lifecycle fields to `Lien__c`.
+7. Build the `Complete Lien Journey` guided Screen Flow (negotiation through closure).
+8. Add it as a quick action and place it on the Lien record page.
+9. **Only if it's solid and rehearsed:** fold in a brief teaser at Beat 9 of `demo-script.md`, where a later-stage lien is already opened and the Path is already being discussed. If it isn't solid, Beat 9 runs exactly as scripted today (Path narration, "not built yet") — there is no fallback to write, because the stretch work simply doesn't appear.
+
+**Do not let Tier 2 work touch Tier 1 gates.** If Tier 2 runs long, it gets cut — never the reverse.
 
 ## Scope for today
 
-### Must complete
+### Preserve as-is (everything already built — architecture.md §3–§4)
 
-- Add the minimum late-lifecycle fields to `Lien__c`.
-- Build one guided Screen Flow for negotiation through closure.
-- Add the Flow as a Lien quick action.
-- Place the new fields and action on the Lien record page.
-- Create deterministic demo data and a reset procedure.
-- Rewrite the main talk track around one lien.
-- Complete two full rehearsals.
+- Static Resource claimant input, claimant import Apex/LWC
+- Lien routing Flow, escalation queue and Task behavior
+- `ResponseFileWriter.cls` native-attach response generation (just reworked — needs live reverification, not rebuilding)
+- Summary tiles, Bulk Advance batch mechanism, volume settlement seed data
+- Deadline monitoring ("Liens Near Deadline"), Settlement Health Plan junction
+- Field history tracking, Lightning Path (all 11 stages)
 
-### Preserve as-is
+### Stretch build (Tier 2 only, time-boxed, cuttable at any point)
 
-- Static Resource claimant input
-- Existing claimant import Apex/LWC
-- Existing Lien routing Flow
-- Escalation queue and Task behavior
-- Response creation and response-file generation
-- Deadline monitoring
-- Summary tiles
-- Bulk Advance capability
-- Volume settlement
+Same field list, Flow design, and cut rules as the original single-lien plan — reproduced below.
 
-### Do not build today
+### Do not build today (either tier)
 
-- Screen Flow file upload
-- Real SFTP transport
-- Exchange or File Job objects
-- Charge Item, Position, Recovery Decision, Remittance, or Disbursement objects
-- Production recovery-rules engine
-- Finance or CRM integration
-- Custom timeline component
-- New reporting infrastructure
-- General-purpose processing for every lien scenario
+- Screen Flow file upload, real SFTP transport
+- `Exchange__c`, `File_Job__c`, `Evaluation__c`, `Charge_Item__c`, `Position__c`, `Recovery_Decision__c`, `Remittance__c`, `Disbursement_Instruction__c` — this full object set is the `fresh-click-through-demo.md` redesign, a separate future-looking concept doc that explicitly contradicts today's plan ("do not make volume the hero"). It is not today's build target and not connected to the current org.
+- Production recovery-rules engine, Finance/CRM integration, custom timeline component
+- New reporting infrastructure, general-purpose processing for every lien scenario
 
-## Target demo values
+## Target demo values (for Tier 2 stretch work)
 
-Use one claimant consistently through the late-lifecycle story.
+Use one claimant consistently for the late-lifecycle story.
 
 | Value | Demo amount |
 |---|---:|
@@ -81,19 +67,92 @@ Suggested negotiation reason:
 
 > One disputed charge was excluded after review of the settlement program terms; the remaining charges were accepted.
 
+## Addendum: live file-upload replaces the pre-staged import (built mid-day, outside original scope)
+
+Not part of the original plan — added because the presenter wanted Beat 0/2 to show an actual file landing live, not a pre-staged Static Resource with a narrated disclosure. Design: `architecture.md` §4.10 / `rawlings-demo-build-schedule.md` "Claimant Import via Screen Flow." This touches **Beat 0/2, the opening of Mario's demo** — higher stakes than the late-lifecycle stretch work, which only appears at the end if it earns its way in.
+
+Built:
+- `ClaimantImportService.importFromCsv()` — shared CSV-parse/insert logic extracted out of `ClaimantImportController`, which now delegates to it (Static Resource path unchanged and re-verified — the original `ClaimantImportControllerTest` passes unmodified against the refactor).
+- `ClaimantFileImportInvocable` — `@InvocableMethod` Apex action, takes a Settlement Id + ContentDocumentId, reads the `ContentVersion` and calls the shared service.
+- `claimantFileUpload` LWC — wraps `lightning-file-upload`, exposed to Flow screens (`lightning__FlowScreen` target). **Built as a fallback after the native `flowruntime:fileUpload` screen component turned out not to exist in this org/API version** — the exact risk the design doc flagged in advance.
+- `Import_Claimant_File` Screen Flow — Upload screen (the LWC) → Apex Action → Results screen. Simpler than first drafted: the custom LWC outputs a single Id directly, so no collection-extraction workaround was needed.
+- `Settlement__c.Import_Claimant_File` quick action, added **first** in the Settlement action bar (`numVisibleActions` bumped 3→4). The original `Import Claimants` action stays deployed and in the bar as a manual fallback, per the "swap which one's primary, don't delete either" guidance in the design doc.
+
+**Verified via CLI:** all Apex — 6/6 tests passing, including one that inserts a real `ContentVersion` and drives the invocable end-to-end.
+**Not verified — needs a browser:** the Flow screen itself, the `lightning-file-upload` interaction, and the Flow↔LWC data binding (`recordId` in, `contentDocumentId` out via `FlowAttributeChangeEvent`). This is the second browser-untested piece built today, alongside `Complete Lien Journey`.
+
+**If this doesn't work when tested:** the old `Import Claimants` action is still live in the action bar — fall back to it and keep the pre-staged disclosure exactly as `demo-script.md` already has it. Nothing about this addition can break the existing working path; it's additive.
+
+## Addendum: Finance Instruction Generator (built after `Complete Lien Journey`, outside the original Tier 2 step list)
+
+Not part of the original Tier 2 plan (steps 6–9 above only cover the `Complete Lien Journey` Flow) — added as a further stretch item once that Flow was built, to give the lifecycle a final, auditable artifact rather than ending at `Closed`/`Approved` with nothing downstream. Full spec: `docs/finance-instruction-generator-spec.md`. Design and status: `architecture.md` §4.12.
+
+Built: three audit fields on `Lien__c` (`Finance_Instruction_Generated_At__c`, `Finance_Instruction_Generated_By__c`, `Finance_Instruction_Filename__c`), `FinanceInstructionWriter.cls` (+ test, 8/8 passing, 96% coverage), `generateFinanceInstruction` LWC, `Generate Finance Instruction` quick action placed after `Complete Lien Journey` in the Lien action bar, plus a Files related list and the three audit fields added to the Lien Lightning Record Page.
+
+**Browser-verified 2026-07-28:** against a manually-imported Lien with `Stage__c` and the financial fields edited directly (not via the `Complete Lien Journey` guided screens) — action button appeared after a hard refresh (Lightning caches FlexiPage action bars client-side; a newly-deployed action doesn't always show until the tab reloads), eligibility validation correctly blocked generation with a business-readable message while required amounts were blank, and generation succeeded once the spec's demo values were entered (Agreed/Recovery/Remittance $15,250; Health Plan Allocation $12,200; Rawlings Allocation $3,050; Disbursement Status Approved) — CSV attached to the Lien's Files related list.
+
+**Still not verified:** the underlying `Complete Lien Journey` guided Flow (§4.11) itself — today's test reached the eligible state by editing fields directly, not by running the Negotiation → Recovery and Remittance → Disbursement screens live. Beat 9 readiness (below) still depends on that Flow, not on the Finance Instruction Generator alone.
+
+## Addendum: Claimant Intake Validation and Rejection Handling (built later the same day, outside the original plan)
+
+Not part of any tier above — a separate spec (`docs/claimant-intake-validation-spec.md`) requested after the day's original scope was set. Rebuilds the import path added by the earlier live-file-upload addendum (above) so it actually enforces the PDF's data-quality contract instead of just parsing rows and inserting Liens. Design and status: `architecture.md` §4.13.
+
+Built:
+- `ClaimantImportResult.cls` / `ClaimantRowError.cls` — new typed result shared by both import entry points, replacing the old `Map<String, Integer>` return.
+- `ClaimantImportService.importFromCsv` rewritten: exact-header/empty-file/size/row-limit checks, then 14 row-level rules applied in the spec's fixed priority order (required fields, Claimant ID length, Health-Plan existence *and* Settlement participation via `Settlement_Health_Plan__c`, allowed Coverage Result values, Recoverable Amount required/numeric/non-negative/positive-when-Confirmed, case-insensitive duplicate-in-file), existing-Lien update-instead-of-insert by Settlement + Claimant ID (ambiguous matches rejected), partial DML (`Database.insert/update(records, false)`) so one bad record doesn't sink the batch, and a quote-escaped rejection CSV attached to the Settlement whenever anything's rejected.
+- `ClaimantImportController` and `ClaimantFileImportInvocable` updated to return/consume the typed result. `claimantImport` LWC toast and `Import_Claimant_File` Screen Flow's results screen both updated to show the full created/updated/rejected/automated/escalated breakdown, with a `warning`-styled variant when anything's rejected.
+- `ClaimantValidationDemo.csv` — a new, separate Static Resource fixture (15 rows: 8 Confirmed + 2 Unable-to-Confirm creates, 1 update of `SampleClaimants.csv`'s `CLM-00001`, 4 intentional rejections) matching the spec's own worked example. Not yet wired to a Quick Action or the demo script.
+- `ClaimantImportServiceTest` rewritten to 22 methods (all cases the spec calls out, plus a couple extra); `ClaimantFileImportInvocableTest` extended to 2.
+
+**Deployed and CLI-verified, later the same session:** the CLI turned out to be present on the machine, just not on the PATH the initial check used — found and invoked via its full install path. Deployed via `sf project deploy start` (dry-run first, then the real deploy), scoped to exactly this addendum's files. **27/27 Apex tests passing** in the org (`ClaimantImportServiceTest`, `ClaimantFileImportInvocableTest`, and the pre-existing `ClaimantImportControllerTest` — deploy ID `0AfdL00000ePP6kSAG`).
+
+**One pre-existing file had to be fixed to make this deployable at all:** `ClaimantImportControllerTest.cls` (not otherwise part of this addendum) called `ClaimantImportController.importClaimants` expecting the old `Map<String, Integer>` return type — the org-wide Apex recompile that every deploy triggers would have failed on this file even though it wasn't in scope. Fixed to consume the new typed result and to give its test settlement `Settlement_Health_Plan__c` junction records, without which the new plan-participation check would have rejected every row of the real `SampleClaimants.csv` that test reads live.
+
+**Deploy deliberately excluded the flexipages and permission set already showing local changes** (`Lien_Record_Page.flexipage-meta.xml`, `Settlement_Record_Page.flexipage-meta.xml`, `Rawlings_Demo_Access.permissionset-meta.xml`) — those reflect page-layout edits made directly in the org that don't exist in the local working copy. Only the files this addendum actually changed (plus the one pre-existing test fix above) were passed to `--source-dir`.
+
+**Browser-verified live, same day:** presenter cleared the live settlement to zero Liens (`scripts/apex/resetSettlementA.apex`) and uploaded `ClaimantValidationDemo.csv` through `Import_Claimant_File`. Result, confirmed by direct query afterward: **11 created (9 Coverage Confirmed, 2 Escalated), 0 updated, 4 rejected, 15 rows received.** Pulled the generated rejection CSV back out of the org and it matches exactly — correct row numbers, codes (`UNKNOWN_HEALTH_PLAN`, `MISSING_CLAIMANT_ID`, `INVALID_RECOVERABLE_AMOUNT`, `DUPLICATE_IN_FILE`), reasons, and quote-escaping. Both the uploaded file and the rejection file landed on the Settlement's Files related list as expected. This also closes out the original live-file-upload addendum's open item — same Flow, same LWC, same data binding, now exercised live.
+
+**Known risk to the already-working import — resolved by the same live test:** `ClaimantValidationDemo.csv` uses the same three Health Plan Accounts `SampleClaimants.csv` does, against the same live settlement, and all passed the participation check. `Import Claimants` itself hasn't been separately re-clicked since the deploy, but it runs identical validation code against identical data, so this isn't expected to be a live surprise.
+
+**Caveat found during the live run, not a bug:** because the settlement had zero pre-existing Liens at test time, the fixture's `CLM-00001` "update" row created a new Lien instead of updating one — 11 created/0 updated rather than the fixture's designed 10/1. To see the update branch specifically, re-seed `CLM-00001` (via `Import Claimants`/`SampleClaimants.csv`) before uploading `ClaimantValidationDemo.csv` on top of it.
+
+**Reset script reused successfully:** `scripts/apex/resetSettlementA.apex` (pre-existing, not written for this addendum) worked unmodified to clear the live settlement between import test runs — deletes by Settlement Id regardless of Claimant ID prefix, so it handles both `SampleClaimants.csv`- and `ClaimantValidationDemo.csv`-derived Liens the same way. Run twice live during this addendum's testing.
+
+**Remaining before trusting this in front of Mario:** re-click the actual `Import Claimants` button (not just its underlying data) against `SampleClaimants.csv`, and exercise the update path specifically per the caveat above. Otherwise this addendum is now fully live-verified, not just deployed.
+
 ## Work schedule
 
 ### 8:00–8:20 — Protect the working demo
 
-- Confirm the current import, routing, and response-file path still works.
-- Record the demo settlement ID and intended claimant ID.
-- Confirm the current Git working tree before editing.
-- Do not alter or discard unrelated working-tree changes.
-- Write down the current reset steps for the existing demo.
+- Confirm the current Git working tree (uncommitted work from prior sessions was already checkpointed and pushed to `main` — `195b9f8`).
+- Reverify Act 1 works end-to-end **including the reworked response-file mechanism**, which has not been run live since the native-attach rework: Import Claimants → Coverage Confirmed → open a Response → Generate Response File → confirm the CSV lands on the Settlement's Files related list.
+- Record the live settlement ID (Settlement A) and volume settlement ID (Settlement B, `Talc Powder Mass Tort 2023`, `a02dL00000p27A8QAI`).
 
-**Gate:** Existing demo is known-good before new work begins.
+**Gate:** Act 1 is confirmed working, specifically the just-changed response-file path, before touching anything else.
 
-### 8:20–9:20 — Add the minimum Lien fields
+### 8:20–8:35 — Task R.3: restage for two settlements
+
+Per `rawlings-demo-build-schedule.md`: Tab 1 = Settlement A (Lien related list scrolled to top) + Escalation Queue list view in a second tab; a third tab or bookmark ready to jump to Settlement B. Confirm Settlement B's Summary tiles and Bulk Advance action are visible without searching.
+
+**Acceptance check:** Both settlements are one click away.
+
+### 8:35–10:00 — Task V.7: full live dry run of Bulk Advance
+
+On Settlement B: confirm Summary tiles reflect ~1,000 total liens with the expected spread. Run Bulk Advance Liens (Coverage Confirmed → Response Ready), confirm the preview reads ~850, submit, wait for completion, Refresh, confirm the tile shift. Spot-check Field History on a few moved records. Rehearse the narration from `demo-script.md` Beats 7–9 while doing this.
+
+Run it twice. Fix anything that blocks or materially weakens the story; note anything cosmetic for later.
+
+**Gate:** Two clean dry runs before moving on.
+
+### 10:00–10:30 — First combined rehearsal (Act 1 + Act 2)
+
+Run the full `demo-script.md` script back to back, uninterrupted, at presentation pace — this is Mario's actual demo. Record total time, navigation delays, anything that doesn't refresh, any talk-track overclaim.
+
+**Gate:** One clean full run of Mario's demo, start to finish, before any Tier 2 work begins.
+
+### 10:30–1:30 — Tier 2 stretch: add the minimum Lien fields + build the Flow
+
+Only start this block once the 10:00–10:30 gate is met. If V.7 or the combined rehearsal ran long and ate into this window, shrink this block — do not borrow time from the afternoon's Tier 1 rehearsals below.
 
 Create these fields on `Lien__c`:
 
@@ -109,333 +168,115 @@ Create these fields on `Lien__c`:
 | Rawlings Allocation | `Rawlings_Allocation__c` | Currency(16,2) |
 | Disbursement Status | `Disbursement_Status__c` | Picklist: Draft, Pending Approval, Approved |
 
-Also:
+All `Stage__c` values this Flow needs (`Agreed`, `Pre-Validation`, `Collected`, `Closed`) already exist on the picklist — no picklist changes required.
 
-- Add all new fields to `Rawlings_Demo_Access`.
-- Enable field-history tracking for:
-  - `Agreed_Amount__c`
-  - `Recovery_Amount__c`
-  - `Remittance_Amount__c`
-  - `Disbursement_Status__c`
-- Deploy the fields and permission-set changes.
+Also: add all new fields to `Rawlings_Demo_Access`; enable field-history tracking for `Agreed_Amount__c`, `Recovery_Amount__c`, `Remittance_Amount__c`, `Disbursement_Status__c`; deploy fields and permission-set changes.
 
-**Acceptance check:**
+Build a Screen Flow (`recordId` input, `Lien__c`) — same design as originally spec'd:
 
-- Fields are visible to the demo user.
-- The variance formula returns `$0` for equal agreed and remittance amounts.
-- Existing Apex tests still compile.
-- Field-history tracking is confirmed enabled for `Agreed_Amount__c`, `Recovery_Amount__c`, `Remittance_Amount__c`, and `Disbursement_Status__c` — non-negotiable, since Beat 4's talk track promises the audience these later-lifecycle changes get captured the same way the automated ones did.
+1. **Load and validate** — get the Lien, permit only when recoverable amount is positive, display claimant/settlement/stage/asserted amount.
+2. **Negotiation screen** — collect administrator position, agreed amount, negotiation reason; validate non-negative, agreed ≤ asserted, reason required; set Stage → `Agreed`.
+3. **Recovery and remittance screen** — collect recovery + remittance amounts; if remittance ≠ agreed, set Stage → `Pre-Validation`, populate `Escalation_Reason__c` (reused field) with a variance explanation, create a payment-review Task, end with an exception message; otherwise set Stage → `Collected`.
+4. **Disbursement screen** — collect health plan + Rawlings allocations; validate non-negative and that they sum to the remittance amount; set `Disbursement_Status__c` → `Approved`, Stage → `Closed`.
+5. **Completion screen** — display claimant, all captured amounts, variance, final stage/status.
 
-**Cut rule:** If metadata deployment consumes more than 60 minutes, do not cut field-history tracking on these four fields. Cut something else in this block first (e.g., defer the permission-set update to immediately after the Flow-building block) before touching history.
+**Acceptance check:** main path ends at Closed; mismatch path ends at Pre-Validation with a Task; validation and allocation math enforced; Flow errors visible, not swallowed.
 
-### 9:20–12:00 — Build `Complete Lien Journey` Screen Flow
+**Cut rule:** if this whole block is running out of time, cut the exception branch (Step 3's mismatch path) first — keep the happy path, narrate the intended exception behavior if it ever comes up. If still short on time, stop after the fields deploy and skip the Flow entirely — deployed fields with no Flow is a clean stopping point, not a broken one.
 
-Create a Screen Flow that accepts `recordId` for a `Lien__c`.
+### 1:30–2:15 — Tier 2 stretch: quick action + page placement
 
-#### Step 1 — Load and validate
+- Create a Flow quick action on `Lien__c` (`Complete Lien Journey`), add to the Lien action bar.
+- Add three compact field sections (Negotiation / Recovery and Payment / Disbursement); keep Path and History prominent; do not redesign the record page.
 
-- Get the current Lien.
-- Permit the action only when the lien has a positive recoverable amount.
-- Display claimant, settlement, current stage, and asserted amount.
+**Acceptance check:** action launches from the selected Lien with the correct record ID; updated values and History appear after completion.
 
-#### Step 2 — Negotiation screen
+### 2:15–2:35 — Tier 2 stretch: deterministic data and reset — **Done**
 
-Display:
+**Correction from the original plan:** this uses Settlement B (the volume settlement), not Settlement A. Beat 9 of `demo-script.md` already opens a later-stage lien on Settlement B for the full-lifecycle Path moment — that's the natural home for the teaser, not Settlement A. Settlement A also can't absorb a 16th hand-built record without undermining its "this is fifteen claimants" framing (the exact problem `demo-script-open-questions.md` already solved once by splitting the two settlements). A dedicated hand-built record on Settlement B follows the same precedent as `[Pre-existing] Helen Vasquez`.
 
-- Recoverable amount
+Built: a dedicated Lien on Settlement B (`Talc Powder Mass Tort 2023`, `a02dL00000p27A8QAI`) — `Claimant_ID__c = 'CLM-PRE-002'`, Angela Whitfield, Health Plan A, `Stage__c = 'Coverage Confirmed'`, `Recoverable_Amount__c = 18500`. Record Id `a00dL00003YfQ1SQAV`. Inserting it fired the existing routing Flow automatically, which created its Draft Response (`Claimed_Amount__c = 18500`) for free — no manual step needed.
 
-Collect:
+Reset script: `scripts/apex/resetLateLifecycleDemo.apex` — clears all eight late-lifecycle fields, restores `Stage__c` to `Coverage Confirmed`, deletes any `Review: Payment variance` Task on this record. Run via `sf apex run --file scripts/apex/resetLateLifecycleDemo.apex --target-org rawlings-demo`. Verified working.
 
-- Administrator position
-- Agreed amount
-- Negotiation reason
+**Talk-track note (unresolved):** Beat 9's current line — "This one's already traveled further than intake... right now it's sitting in negotiation" — assumes an already-negotiated record. This record starts at Coverage Confirmed instead, so the teaser shows the *entire* guided journey live rather than a partial Path click. That's a stronger demo but needs different framing ("watch the rest of this lien's life happen live" instead of "it's already traveled further"). Rewrite this line in `demo-script.md` only if the 2:35 rehearsal decides Tier 2 is demo-ready.
 
-Validate:
+**Acceptance check:** reset completes in under a minute (single record, one Apex script run) — met.
 
-- Amounts cannot be negative.
-- Agreed amount cannot exceed the asserted/recoverable amount for this demo.
-- Negotiation reason is required.
+**Hard stop for Tier 2 at 2:35.** Whatever state the stretch work is in at this point is what exists for today — the rest of the day belongs to Tier 1.
 
-Update:
+### 2:35–3:15 — Second combined rehearsal (Mario's actual demo)
 
-- Store the three values.
-- Set Stage to `Agreed`.
+Reset data, close unrelated tabs, run `demo-script.md` end to end at presentation pace exactly as Mario will see it.
 
-#### Step 3 — Recovery and remittance screen
+**Decide here whether Tier 2 is demo-ready:** only fold the Beat 9 teaser in if the Flow ran clean in this rehearsal with no fixes needed. If it needed any fix during this run, leave Beat 9 as scripted today and treat the Flow as ready for a *future* rehearsal, not this one.
 
-Display:
+**Gate:** two clean full runs of Mario's demo (this one plus the 10:00–10:30 run) — more valuable than any additional Tier 2 polish.
 
-- Agreed amount
+### 3:15–3:45 — Corrective work
 
-Collect:
+Priority order: broken Flow path (Act 1 or Act 2) → incorrect field values/calculations → missing permission → page refresh/navigation problem → reset failure → talk-track correction → visual polish. Do not add new scope.
 
-- Recovery amount
-- Remittance amount
+### 3:45–4:15 — Third rehearsal only if corrections were made
 
-Decision:
+Skip if the 2:35 rehearsal was already clean.
 
-- If remittance equals agreed amount, continue.
-- If it does not match:
-  - Set Stage to `Pre-Validation`.
-  - Populate `Escalation_Reason__c` with a payment-variance explanation.
-  - Create a Task for payment review.
-  - End with an exception message.
+### 4:15–5:00 — Final staging
 
-For the main demo path:
-
-- Store the recovery and remittance amounts.
-- Set Stage to `Collected`.
-
-#### Step 4 — Disbursement screen
-
-Display:
-
-- Remittance amount
-
-Collect:
-
-- Health plan allocation
-- Rawlings allocation
-
-Validate:
-
-- Both amounts must be non-negative.
-- The two allocations must equal the remittance amount.
-
-Update:
-
-- Set `Disbursement_Status__c` to `Approved`.
-- Set Stage to `Closed`.
-
-#### Step 5 — Completion screen
-
-Display:
-
-- Claimant
-- Initial asserted amount
-- Administrator position
-- Agreed amount
-- Remittance amount
-- Payment variance
-- Health plan allocation
-- Rawlings allocation
-- Final stage and disbursement status
-
-**Acceptance check:**
-
-- The main path ends at `Closed`.
-- The mismatch path ends at `Pre-Validation` and creates a Task.
-- Required values and allocation math are enforced.
-- Flow errors are visible rather than silently swallowed.
-
-**Cut rule at 11:30:** If the exception branch is not working, remove it from today’s live Flow. Keep the happy path and narrate the intended exception behavior.
-
-### 12:00–12:30 — Break and checkpoint
-
-Before breaking:
-
-- Save and activate the latest working Flow version.
-- Confirm the main Flow path works once.
-- Note any deferred issue explicitly.
-
-Do not start additional scope during the break.
-
-### 12:30–1:15 — Add the action and update the Lien page
-
-- Create a Flow quick action on `Lien__c`:
-  - Label: `Complete Lien Journey`
-  - Flow: the new guided Screen Flow
-- Add the action to the Lien action bar.
-- Add three compact field sections:
-  - Negotiation
-  - Recovery and Payment
-  - Disbursement
-- Keep the existing Path and History prominent.
-- Do not redesign the entire record page.
-
-**Acceptance check:**
-
-- The action launches from the selected Lien.
-- The Flow receives the correct record ID.
-- Updated values appear on the record after completion.
-- History is still visible.
-
-### 1:15–1:45 — Prepare deterministic data and reset
-
-- Select the exact coverage-confirmed claimant for the live story.
-- Ensure its recoverable amount is `$18,500`.
-- Ensure a Draft Response exists.
-- Ensure it will appear in the response file before the presenter manually advances it.
-- Create a reset script or documented reset procedure that:
-  - Clears all new late-lifecycle fields.
-  - Restores Stage to `Coverage Confirmed`.
-  - Restores Disbursement Status to blank or Draft.
-  - Removes any payment-exception Task created during testing.
-- Keep the existing Static Resource path as the import fallback.
-
-**Acceptance check:** Reset can be completed in five minutes or less.
-
-### 1:45–2:45 — Rewrite the main demo script
-
-Restructure the current script into this main path:
-
-1. **Settlement configuration**
-2. **Pre-staged SFTP input**
-3. **Import and automated routing**
-4. **One coverage-confirmed claimant**
-5. **Draft position and audit history**
-6. **Generate outbound response file**
-7. **Complete Lien Journey**
-8. **Closed lien and complete financial result**
-9. **Operational health and approaching deadlines**
-10. **Optional scale proof**
-11. **Close on platform fit and honest scope**
-
-Target timing:
-
-| Segment | Time |
-|---|---:|
-| Configuration and intake | 3 min |
-| Evaluation and escalation | 4 min |
-| Initial response | 3 min |
-| Negotiation through closure | 5 min |
-| Audit, operational health, and scale | 3 min |
-| Close | 1 min |
-| **Total** | **19 min** |
-
-Required late-lifecycle disclosure:
-
-> “The prototype currently automates intake, evaluation routing, and the initial response. This guided interaction demonstrates how Salesforce controls the negotiation, recovery, reconciliation, and disbursement decisions. The production recovery rules, SFTP transport, and Finance integration are later-phase work.”
-
-Required inbound-file disclosure:
-
-> “For demo reliability, the administrator’s input file is pre-staged in Salesforce. In Phase 1, an SFTP adapter creates the same inbound transaction automatically; the Salesforce processing shown from this point remains the same.”
-
-### 2:45–3:30 — First full rehearsal
-
-Run the entire demo without stopping.
-
-Record:
-
-- Total time
-- Navigation delays
-- Flow errors
-- Records that did not refresh
-- Places where the talk track overclaims functionality
-- Reset problems
-
-Fix only issues that block or materially weaken the main story.
-
-**Gate:** The full main path completes once before any polish work.
-
-### 3:30–4:00 — Corrective work
-
-Priority order:
-
-1. Broken Flow path
-2. Incorrect field values or calculations
-3. Missing permission
-4. Page refresh/navigation problem
-5. Reset failure
-6. Talk-track correction
-7. Visual polish
-
-Do not add new features.
-
-### 4:00–4:40 — Second full rehearsal
-
-- Reset the data.
-- Close unrelated browser tabs.
-- Run the demo at presentation pace.
-- Use the exact talk track disclosures.
-- Confirm total time is no more than 20 minutes.
-- Confirm the optional volume segment can be skipped without breaking the close.
-
-**Gate:** Two successful full runs are more valuable than one additional feature.
-
-### 4:40–5:00 — Final staging
-
-- Reset the chosen lien one final time.
-- Confirm the live settlement is in the expected starting state.
-- Confirm the response-file destination/Files list is ready.
-- Place the intended claimant CSV somewhere accessible.
-- Stage browser tabs.
+- Reset both settlements' data one final time.
+- Confirm the live settlement is in its expected starting state; response-file destination (Files list) ready.
+- Stage browser tabs per the R.3 restage.
 - Save a copy of the reset instructions.
 - Stop changing metadata.
 
-## Main demo click path
+## Mario's demo click path (unchanged from `demo-script.md`)
 
-1. App Launcher → Lien Operations
-2. Settlements → live demo Settlement
-3. Show configuration and participating health plans
-4. Import Claimants
-5. Open Lien related list
-6. Open the selected coverage-confirmed claimant
-7. Show Response and History
-8. Return to Settlement → Generate Response File
-9. Return to selected Lien
-10. Complete Lien Journey
-11. Show final amounts, Closed stage, and History
-12. Return to Settlement summary/deadline components
-13. Optionally show the volume Settlement and Bulk Advance
-14. Close
-
-## Optional scale segment
-
-Keep the existing volume settlement and Bulk Advance capability, but limit the segment to 60 seconds unless asked for more.
-
-Suggested talk track:
-
-> “The main proof was one lien through the complete lifecycle. The same platform also has to manage the book of business. This second settlement shows the operational distribution and the existing asynchronous bulk mechanism. It is supporting evidence for scale, not a claim that the narrow Phase 1 prototype delivers every production-volume requirement.”
+1. Static Resource → Settlement A Files (empty)
+2. Settlement Configuration — administrator, response window, participating health plans
+3. Import Claimants
+4. Lien related list → Escalation Queue
+5. Open a Coverage Confirmed lien → Response → History → advance Path to Response Ready
+6. Open an Escalated lien → escalation reason + Task
+7. Generate Response File → Files related list
+8. Switch to Settlement B → Summary tiles → Bulk Advance Liens (live)
+9. Liens Near Deadline component
+10. Open a later-stage lien, Path chevron — **if Tier 2 is demo-ready per the 2:35 rehearsal decision, launch `Complete Lien Journey` briefly here instead of just narrating "not built yet"; otherwise run this beat exactly as scripted**
+11. Close
 
 ## Fallback strategy
 
-### If the new Flow fails before rehearsal
+### If Bulk Advance is slow or fails live during V.7 or the real demo
 
-- Do not demonstrate it live.
-- Use a pre-populated Closed lien.
-- Walk the new field sections and Path.
-- Explain the guided workflow as the proposed next increment.
-- Keep the current intake-through-response demonstration intact.
+- Do not wait on a stalled job live. Show the Summary tiles' current state, narrate the mechanism (consultant aside track), and reference the prior successful dry run.
 
 ### If import fails live
 
-- Open a pre-imported coverage-confirmed lien.
-- Say the file was processed during pre-demo validation.
-- Continue from the lien workspace.
+- Open a pre-imported coverage-confirmed lien on Settlement A, say the file was processed during pre-demo validation, continue from the lien workspace.
 
 ### If response-file generation fails
 
-- Open the already-built “Liens Ready to Respond” report.
-- Show the same outbound data.
-- Continue without attempting repeated clicks.
+- Open the "Liens Ready to Respond" report as the documented manual/ad-hoc alternative (`demo-script-open-questions.md`), show the same outbound data, continue without repeated clicks.
 
-### If time is running long
+### Tier 2 stretch work, at any state of readiness
 
-Cut in this order:
-
-1. Bulk Advance live action
-2. Detailed deadline explanation
-3. Second escalation record
-4. Field-history deep dive
-
-Never cut the guided journey or the scope disclosure.
+- No fallback needed — it is not in Mario's scripted path unless the 2:35 rehearsal explicitly earned it a place at Beat 9.
 
 ## End-of-day checklist
 
-- [ ] New Lien fields deployed
-- [ ] Demo permission set updated
-- [ ] Complete Lien Journey Flow active
-- [ ] Flow quick action visible
-- [ ] Main happy path completes at Closed
-- [ ] Payment variance displays correctly
-- [ ] Allocation validation works
-- [ ] Demo claimant has deterministic values
-- [ ] Reset procedure tested
-- [ ] Script updated
-- [ ] Scope disclosures included
-- [ ] First full rehearsal complete
-- [ ] Blocking issues corrected
-- [ ] Second full rehearsal complete
+- [ ] Act 1 reverified against the reworked `ResponseFileWriter.cls`
+- [ ] Task R.3 — two-settlement restage complete
+- [ ] Task V.7 — Bulk Advance dry run clean twice
+- [ ] First combined rehearsal complete (10:00–10:30 gate)
+- [ ] Second combined rehearsal complete, at presentation pace
+- [ ] Corrective work applied if needed, re-rehearsed
 - [ ] Browser and data reset for presentation
-
+- [x] Tier 2 fields deployed *(stretch)*
+- [x] Tier 2 Flow active and quick action visible *(stretch)* — not yet tested end-to-end in browser
+- [x] Tier 2 reset procedure documented *(stretch)* — `scripts/apex/resetLateLifecycleDemo.apex`, verified running clean
+- [x] Finance Instruction Generator built and browser-verified *(stretch, addendum)* — generation, eligibility validation, and File attachment all confirmed live; the `Complete Lien Journey` Flow itself is still the open item above, not this
+- [ ] Beat 9 teaser decision made explicitly — in or out *(stretch)*
+- [ ] Beat 9 talk-track line rewritten to match a Coverage-Confirmed starting point, if teaser goes in *(stretch)*
+- [x] Claimant Intake Validation and Rejection Handling deployed via CLI *(addendum)* — deploy ID `0AfdL00000ePP6kSAG`
+- [x] `ClaimantImportServiceTest` / `ClaimantFileImportInvocableTest` / `ClaimantImportControllerTest` actually run and passing in the org *(addendum)* — 27/27
+- [x] `SampleClaimants.csv` / the original `Import Claimants` action's Health-Plan data checked against the new participation requirement *(addendum)* — all 3 plans linked and confirmed passing live via the equivalent validation-demo upload; the `Import Claimants` button itself still not re-clicked
+- [x] `ClaimantValidationDemo.csv` uploaded live through `Import_Claimant_File` *(addendum)* — 11 created/0 updated/4 rejected, rejection CSV verified correct; update path not yet exercised (needs `CLM-00001` re-seeded first)

@@ -1,4 +1,78 @@
-# Full Lien Lifecycle
+# Full Lien Lifecycle — Salesforce Screens and Functions
+
+## Salesforce click-through lifecycle
+
+```mermaid
+flowchart TB
+    A["App Launcher → Lien Operations<br/>Operations Home"]
+    B["Settlements → Demo Settlement<br/>Show administrator, terms, plans, readiness"]
+    C["Settlement action: Import Claimants<br/>Static Resource = simulated SFTP input"]
+    D["ClaimantImportController<br/>Parse CSV and create Liens"]
+    E{"Lien Automation on Create<br/>Coverage confirmed + amount positive?"}
+    F["Lien Record Page<br/>Stage → Coverage Confirmed<br/>Draft Response created"]
+    G["Escalation Queue<br/>Stage → Escalated<br/>Task + notification created"]
+    H["Lien Record Page<br/>Show Path, deadline, Response, History"]
+    I["Settlement action: Generate Response File<br/>LWC preview → Apex CSV writer"]
+    J["Settlement Files<br/>Show outbound artifact"]
+    K["Lien action: Complete Lien Journey"]
+    L["Negotiation Flow<br/>Enter administrator position,<br/>agreed amount and reason"]
+    M{"Inputs valid?"}
+    N["Update Lien<br/>Stage → Agreed"]
+    O["Recovery Flow<br/>Enter recovery + remittance"]
+    P{"Remittance equals agreed amount?"}
+    Q["Payment exception<br/>Stage → Pre-Validation<br/>Create review Task"]
+    R["Update Lien<br/>Stage → Collected"]
+    S["Disbursement Flow<br/>Enter plan + Rawlings allocations"]
+    T{"Allocations equal remittance?"}
+    U["Approve disbursement<br/>Stage → Closed"]
+    V["Completion + Lien Record Page<br/>Show financial summary, Closed Path, History"]
+    W["Settlement Summary + Near Deadline<br/>Optional: Volume Settlement → Bulk Advance"]
+
+    A --> B --> C --> D --> E
+    E -- Yes --> F --> H
+    E -- No --> G
+    G -. Resolve exception .-> H
+    H --> I --> J --> K --> L --> M
+    M -- No: correct values --> L
+    M -- Yes --> N --> O --> P
+    P -- No --> Q -. Resolve variance .-> O
+    P -- Yes --> R --> S --> T
+    T -- No: correct allocations --> S
+    T -- Yes --> U --> V --> W
+
+    ADMIN[(Administrator SFTP)]
+    SERVICES[(Liability + Damages Services)]
+    FINANCE[(Finance System)]
+    ADMIN -. Inbound simulated .-> C
+    E -. Results pre-populated .-> SERVICES
+    J -. Outbound simulated .-> ADMIN
+    U -. Finance handoff simulated .-> FINANCE
+```
+
+## Presenter click sequence
+
+| Step | Salesforce screen | Select or demonstrate | Function being proven |
+|---:|---|---|---|
+| 1 | Operations Home | Lien Operations app | Work, deadlines and exceptions |
+| 2 | Settlements | Demo Settlement | Settlement system of record |
+| 3 | Settlement Record Page | Details and participating plans | Program configuration |
+| 4 | Settlement action bar | Import Claimants | Simulated inbound-file trigger |
+| 5 | Import result | Success counts | Automated intake and routing |
+| 6 | Lien related list | Coverage-confirmed claimant | Durable recovery opportunity |
+| 7 | Lien Record Page | Path, evaluation and deadline | Evaluation state and program clock |
+| 8 | Response and History | Draft position and changes | Assertion and audit trail |
+| 9 | Escalation Queue | Optional escalated claimant | Human exception ownership |
+| 10 | Settlement action bar | Generate Response File | Outbound response generation |
+| 11 | Settlement Files | Generated CSV | Preserved outbound artifact |
+| 12 | Lien action bar | Complete Lien Journey | Guided downstream workflow |
+| 13 | Negotiation Flow | Counter-position and agreement | Controlled negotiation |
+| 14 | Recovery Flow | Recovery and remittance | Payment reconciliation |
+| 15 | Disbursement Flow | Allocations and approval | Disbursement control |
+| 16 | Lien Record Page | Closed Path and History | Closure and traceability |
+| 17 | Settlement Record Page | Summary and deadlines | Operational health |
+| 18 | Volume Settlement | Optional Bulk Advance | Scale mechanism |
+
+## Full business lifecycle reference
 
 ```mermaid
 flowchart TB

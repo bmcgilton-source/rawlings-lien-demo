@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+
+    <assignments>
+        <name>Set_Lien_Collected_Fields</name>
+        <label>Set Lien Collected Fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Recovery_Amount__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Recovery_Amount</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Remittance_Amount__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Remittance_Amount</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Stage__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Collected</stringValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_Lien_Collected</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Set_Lien_PreValidation_Fields</name>
+        <label>Set Lien Pre-Validation Fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Recovery_Amount__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Recovery_Amount</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Remittance_Amount__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Remittance_Amount</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Stage__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Pre-Validation</stringValue>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Get_Lien.Escalation_Reason__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Payment_Variance_Explanation</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_Lien_PreValidation</targetReference>
+        </connector>
+    </assignments>
+
+    <decisions>
+        <name>Decision_Eligible_For_Recovery</name>
+        <label>Ready for Recovery and Remittance?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Screen_Not_Eligible</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Not Eligible</defaultConnectorLabel>
+        <rules>
+            <name>Eligible</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Lien.Stage__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Agreed</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Screen_Recovery</targetReference>
+            </connector>
+            <label>Eligible</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Decision_Payment_Match</name>
+        <label>Remittance Matches Agreed Amount?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Set_Lien_PreValidation_Fields</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Mismatch</defaultConnectorLabel>
+        <rules>
+            <name>Match</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Remittance_Amount</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <elementReference>Get_Lien.Agreed_Amount__c</elementReference>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Set_Lien_Collected_Fields</targetReference>
+            </connector>
+            <label>Match</label>
+        </rules>
+    </decisions>
+
+    <environments>Default</environments>
+
+    <formulas>
+        <name>Payment_Variance_Explanation</name>
+        <dataType>String</dataType>
+        <expression>&quot;Remittance of &quot; &amp; TEXT({!Remittance_Amount}) &amp; &quot; does not match the agreed amount of &quot; &amp; TEXT({!Get_Lien.Agreed_Amount__c}) &amp; &quot;.&quot;</expression>
+    </formulas>
+
+    <interviewLabel>Record Recovery and Remittance {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Record Recovery &amp; Remittance</label>
+
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+
+    <recordCreates>
+        <name>Create_Payment_Review_Task</name>
+        <label>Create Payment Review Task</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Screen_Exception</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <inputAssignments>
+            <field>ActivityDate</field>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <elementReference>Payment_Variance_Explanation</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <stringValue>00GdL00000ULZPh</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value>
+                <stringValue>Review: Payment variance</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value>
+                <elementReference>Get_Lien.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+
+    <recordLookups>
+        <name>Get_Lien</name>
+        <label>Get Lien</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Decision_Eligible_For_Recovery</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Lien__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <recordUpdates>
+        <name>Update_Lien_Collected</name>
+        <label>Update Lien - Collected</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Screen_Recovery_Complete</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <inputReference>Get_Lien</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Lien_PreValidation</name>
+        <label>Update Lien - Pre-Validation</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Create_Payment_Review_Task</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Screen_Error</targetReference>
+        </faultConnector>
+        <inputReference>Get_Lien</inputReference>
+    </recordUpdates>
+
+    <screens>
+        <name>Screen_Error</name>
+        <label>Something Went Wrong</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Error_Text</name>
+            <fieldText>&lt;p&gt;This lien could not be updated: {!$Flow.FaultMessage}&lt;/p&gt;&lt;p&gt;Close this window and try again. No changes past the last confirmed step were saved.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Not_Eligible</name>
+        <label>Not Eligible</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Not_Eligible_Text</name>
+            <fieldText>&lt;p&gt;This lien is not ready for recovery and remittance. It must be at Agreed; it is currently at {!Get_Lien.Stage__c}.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Recovery</name>
+        <label>Recovery and Remittance</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Decision_Payment_Match</targetReference>
+        </connector>
+        <fields>
+            <name>Agreed_Amount_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Agreed Amount:&lt;/strong&gt; {!Get_Lien.Agreed_Amount__c}&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>Recovery_Amount</name>
+            <dataType>Currency</dataType>
+            <fieldText>Recovery Amount</fieldText>
+            <fieldType>InputField</fieldType>
+            <isRequired>true</isRequired>
+        </fields>
+        <fields>
+            <name>Remittance_Amount</name>
+            <dataType>Currency</dataType>
+            <fieldText>Remittance Amount</fieldText>
+            <fieldType>InputField</fieldType>
+            <isRequired>true</isRequired>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Exception</name>
+        <label>Payment Review Needed</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Exception_Text</name>
+            <fieldText>&lt;p&gt;{!Payment_Variance_Explanation} This lien has been moved to Pre-Validation and a payment review task has been created.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Screen_Recovery_Complete</name>
+        <label>Recovery Recorded</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <fields>
+            <name>Recovery_Complete_Text</name>
+            <fieldText>&lt;p&gt;&lt;strong&gt;Recovery Amount:&lt;/strong&gt; {!Recovery_Amount}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Remittance Amount:&lt;/strong&gt; {!Remittance_Amount}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Stage:&lt;/strong&gt; Collected&lt;/p&gt;&lt;p&gt;Remittance matched the agreed amount. This lien is ready for disbursement approval.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Lien</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+</Flow>

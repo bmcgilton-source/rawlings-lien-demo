@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Payment_Variance__c</fullName>
+    <label>Payment Variance</label>
+    <type>Currency</type>
+    <formula>Remittance_Amount__c - Agreed_Amount__c</formula>
+    <precision>16</precision>
+    <scale>2</scale>
+</CustomField>

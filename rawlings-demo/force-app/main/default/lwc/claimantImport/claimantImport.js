@@ -36,8 +36,8 @@ export default class ClaimantImport extends NavigationMixin(LightningElement) {
         this.state = STATE.LOADING;
 
         try {
-            const counts = await importClaimants({ settlementId: this.recordId });
-            this.showSuccessToast(counts);
+            const result = await importClaimants({ settlementId: this.recordId });
+            this.showResultToast(result);
             this.dispatchEvent(new CloseActionScreenEvent());
             this.navigateToSettlement();
         } catch (error) {
@@ -46,16 +46,22 @@ export default class ClaimantImport extends NavigationMixin(LightningElement) {
         }
     }
 
-    showSuccessToast(counts) {
-        const message =
-            `${counts.total} liens created — ${counts.automated} processing automatically, ` +
-            `${counts.escalated} routed to escalation queue.`;
+    showResultToast(result) {
+        const hasRejections = result.rejectedCount > 0;
+
+        let message =
+            `${result.rowsReceived} rows processed — ${result.createdCount} created, ` +
+            `${result.updatedCount} updated, ${result.rejectedCount} rejected; ` +
+            `${result.automatedCount} processing automatically and ${result.escalatedCount} routed for coverage review.`;
+        if (hasRejections && result.rejectionFilename) {
+            message += ` Rejection file: ${result.rejectionFilename}.`;
+        }
 
         this.dispatchEvent(
             new ShowToastEvent({
-                title: 'Import complete',
+                title: hasRejections ? 'Import complete with data-quality issues' : 'Import complete',
                 message,
-                variant: 'success',
+                variant: hasRejections ? 'warning' : 'success',
                 mode: 'sticky'
             })
         );

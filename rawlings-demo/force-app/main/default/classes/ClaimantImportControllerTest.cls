@@ -9,13 +9,19 @@
 private class ClaimantImportControllerTest {
 
     private static Settlement__c createSettlement() {
-        insert new List<Account>{
+        List<Account> plans = new List<Account>{
             new Account(Name = 'Health Plan A'),
             new Account(Name = 'Health Plan B'),
             new Account(Name = 'Health Plan C')
         };
+        insert plans;
         Settlement__c settlement = new Settlement__c(Name = 'Test Settlement');
         insert settlement;
+        List<Settlement_Health_Plan__c> junctions = new List<Settlement_Health_Plan__c>();
+        for (Account plan : plans) {
+            junctions.add(new Settlement_Health_Plan__c(Settlement__c = settlement.Id, Health_Plan__c = plan.Id));
+        }
+        insert junctions;
         return settlement;
     }
 
@@ -24,12 +30,13 @@ private class ClaimantImportControllerTest {
         Settlement__c settlement = createSettlement();
 
         Test.startTest();
-        Map<String, Integer> counts = ClaimantImportController.importClaimants(settlement.Id);
+        ClaimantImportResult result = ClaimantImportController.importClaimants(settlement.Id);
         Test.stopTest();
 
         List<Lien__c> liens = [SELECT Id FROM Lien__c WHERE Settlement__c = :settlement.Id];
         System.assert(liens.size() > 0, 'Expected at least one lien created from the sample CSV');
-        System.assertEquals(counts.get('total'), liens.size(), 'Returned total should match liens actually created');
+        System.assertEquals(result.createdCount, liens.size(), 'Returned created count should match liens actually created');
+        System.assertEquals(0, result.rejectedCount, 'The sample CSV should validate cleanly once its Health Plans participate in the settlement');
     }
 
     @isTest
