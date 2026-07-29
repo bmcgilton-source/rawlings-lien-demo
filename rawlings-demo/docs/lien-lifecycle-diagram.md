@@ -14,17 +14,17 @@ flowchart TB
     H["Lien Record Page<br/>Show Path, deadline, Response, History"]
     I["Settlement action: Generate Response File<br/>LWC preview → Apex CSV writer"]
     J["Settlement Files<br/>Show outbound artifact"]
-    K["Lien action: Complete Lien Journey"]
-    L["Negotiation Flow<br/>Enter administrator position,<br/>agreed amount and reason"]
+    L["Lien action: Negotiate<br/>Enter administrator position,<br/>agreed amount and reason"]
     M{"Inputs valid?"}
     N["Update Lien<br/>Stage → Agreed"]
-    O["Recovery Flow<br/>Enter recovery + remittance"]
+    O["Lien action: Record Recovery & Remittance<br/>Enter recovery + remittance"]
     P{"Remittance equals agreed amount?"}
     Q["Payment exception<br/>Stage → Pre-Validation<br/>Create review Task"]
     R["Update Lien<br/>Stage → Collected"]
-    S["Disbursement Flow<br/>Enter plan + Rawlings allocations"]
+    S["Lien action: Approve Disbursement<br/>Enter plan + Rawlings allocations"]
     T{"Allocations equal remittance?"}
     U["Approve disbursement<br/>Stage → Closed"]
+    X["Lien action: Generate Finance Instruction<br/>Attach CSV instruction to Lien Files"]
     V["Completion + Lien Record Page<br/>Show financial summary, Closed Path, History"]
     W["Settlement Summary + Near Deadline<br/>Optional: Volume Settlement → Bulk Advance"]
 
@@ -32,13 +32,13 @@ flowchart TB
     E -- Yes --> F --> H
     E -- No --> G
     G -. Resolve exception .-> H
-    H --> I --> J --> K --> L --> M
+    H --> I --> J --> L --> M
     M -- No: correct values --> L
     M -- Yes --> N --> O --> P
     P -- No --> Q -. Resolve variance .-> O
     P -- Yes --> R --> S --> T
     T -- No: correct allocations --> S
-    T -- Yes --> U --> V --> W
+    T -- Yes --> U --> X --> V --> W
 
     ADMIN[(Administrator SFTP)]
     SERVICES[(Liability + Damages Services)]
@@ -64,10 +64,10 @@ flowchart TB
 | 9 | Escalation Queue | Optional escalated claimant | Human exception ownership |
 | 10 | Settlement action bar | Generate Response File | Outbound response generation |
 | 11 | Settlement Files | Generated CSV | Preserved outbound artifact |
-| 12 | Lien action bar | Complete Lien Journey | Guided downstream workflow |
-| 13 | Negotiation Flow | Counter-position and agreement | Controlled negotiation |
-| 14 | Recovery Flow | Recovery and remittance | Payment reconciliation |
-| 15 | Disbursement Flow | Allocations and approval | Disbursement control |
+| 12 | Lien action bar | Negotiate | Controlled negotiation |
+| 13 | Lien action bar | Record Recovery & Remittance | Payment reconciliation |
+| 14 | Lien action bar | Approve Disbursement | Disbursement control |
+| 15 | Lien action bar | Generate Finance Instruction | Finance handoff artifact |
 | 16 | Lien Record Page | Closed Path and History | Closure and traceability |
 | 17 | Settlement Record Page | Summary and deadlines | Operational health |
 | 18 | Volume Settlement | Optional Bulk Advance | Scale mechanism |

@@ -18,7 +18,7 @@ Salesforce does **not** move funds in this prototype. It generates the instructi
 
 ## 2. Demo outcome
 
-The presenter completes `Complete Lien Journey`, returns to the closed Lien, and selects:
+The presenter completes the `Negotiate` → `Record Recovery & Remittance` → `Approve Disbursement` sequence, returns to the closed Lien, and selects:
 
 **Generate Finance Instruction**
 
@@ -78,7 +78,7 @@ The presenter then opens the Lien’s Files related list and points to the prese
 | Icon | `utility:money` or `utility:file` |
 | Placement | Lien Record Page action bar |
 
-The action should be placed after `Complete Lien Journey`.
+The action should be placed after `Negotiate` / `Record Recovery & Remittance` / `Approve Disbursement`.
 
 If dynamic action visibility is easy to configure, show it only when:
 
@@ -344,7 +344,7 @@ Refresh the Lien page so the Files related list and audit fields update.
 
 On `Lien_Record_Page`:
 
-1. Add `Generate Finance Instruction` after `Complete Lien Journey`.
+1. Add `Generate Finance Instruction` after `Negotiate` / `Record Recovery & Remittance` / `Approve Disbursement`.
 2. Add the Files related list if it is not already present.
 3. Add the three audit fields to the Disbursement section.
 4. Keep Path and History visible.
@@ -444,7 +444,7 @@ Use:
 
 ## 17. Demo click path
 
-1. Complete the guided lien journey.
+1. Complete the `Negotiate` → `Record Recovery & Remittance` → `Approve Disbursement` sequence.
 2. Return to the Lien Record Page.
 3. Point to the reconciled amounts and Approved disbursement.
 4. Select **Generate Finance Instruction**.

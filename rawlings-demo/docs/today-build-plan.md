@@ -6,6 +6,8 @@
 
 Building out the late-lifecycle single-lien Screen Flow (negotiation → recovery → disbursement → closed) is still worth doing — for a *later* demo — and today's plan gives it real time. But it is explicitly **stretch scope**: it does not replace, delay, or put at risk anything Mario is scheduled to see.
 
+**Retroactive note:** the plan below (step 7, and every later reference to it) describes building one combined `Complete Lien Journey` Screen Flow. That is what was originally built, then split later the same day into three independent flows/quick actions — `Negotiate`, `Record Recovery & Remittance`, `Approve Disbursement` — each gated on the Lien's current stage instead of one guided session. The plan, schedule, and checklist below are left as originally written for the historical record; see `architecture.md` §4.11 for the as-built design and `demo-script.md` Beat 6 for how it's actually run in the demo.
+
 ## Two tiers of "done"
 
 ### Tier 1 — Must complete (Mario's demo depends on this)
