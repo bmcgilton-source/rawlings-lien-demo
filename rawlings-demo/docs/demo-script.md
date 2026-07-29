@@ -54,12 +54,12 @@ Per `architecture.md` §4.5, keep these visibly separate:
 
 ### Act 1 — Receive, validate, evaluate, and respond (Settlement A)
 
-#### Beat 0 — Open with the raw file (20s)
-**Page shown:** A local file browser showing `ClaimantImportDemo.csv` on the desktop; then Settlement A record, Files related list.
-**Action:** Point at the file sitting on the desktop. Switch to Settlement A, show the Files related list is empty.
+#### Beat 0 — Open on Settlement A (20s)
+**Page shown:** Settlement A record, Files related list.
+**Action:** Open Settlement A, show the Files related list is empty.
 **Talk track:** "Phase 1 is intentionally focused on carrying a single lien from intake through collection. So today, we’re going to follow one claimant from the administrator’s file all the way through that lifecycle. Staying with one record keeps every decision, exception, and artifact visible. At the end, I’ll show how the same transitions operate across a Settlement at volume.
 
-"This is the administrator’s source file. I’ll upload it manually so you can see the point where Salesforce takes over. In Phase 1, SFTP replaces this manual step; the workflow inside Salesforce remains the same." *(switch to Settlement A)* "This Settlement has not produced an outbound file yet. We’ll come back here after the claims have been worked and close the exchange loop."
+"This is Settlement A." *(point to Files related list)* "Nothing has come in and nothing has gone out yet — no files here at all. In a moment, the administrator’s claimant file arrives, and we’ll watch Salesforce take it from there. We’ll come back to this same list after the claims have been worked, when the outbound response closes the exchange loop."
 
 #### Beat 1 — Settlement Configuration (1m)
 **Page shown:** Settlement A record.
@@ -69,7 +69,7 @@ Per `architecture.md` §4.5, keep these visibly separate:
 #### Beat 2 — Lien Intake, clean and not-so-clean (1.5m)
 **Page shown:** Settlement A record → **Import Claimant File** quick action → upload screen → Import Results screen; then the Files related list, open the new rejection file.
 **Action:** Click **Import Claimant File**. Drag `ClaimantImportDemo.csv` from the desktop into the upload screen (or Browse to it), advance to Import, let the results screen land without narrating over it. Then switch to the Files related list and open the rejection CSV.
-**Talk track:** "I’m placing the administrator’s file at the Salesforce boundary. From here, Salesforce validates the file and each claimant row against this Settlement." *(upload and process; pause for results)*
+**Talk track:** "Here’s the administrator’s claimant file." *(show the file)* "I’m uploading it manually today so you can see exactly where Salesforce takes over; in Phase 1, SFTP replaces this manual step, but the workflow inside Salesforce is identical. I’m placing the file at that same boundary now. From here, Salesforce validates the file and each claimant row against this Settlement." *(upload and process; pause for results)*
 
 "Here are the results. Nineteen rows were received. Fourteen created new Liens. One updated an existing Lien rather than creating a duplicate. Four were rejected during intake." *(point to the result counts)*
 
